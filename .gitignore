@@ -1,0 +1,9 @@
+# Block everything
+*
+
+# Unblock Teaching HTML folder
+!Teaching HTML/
+!Teaching HTML/**
+
+# Unblock .gitignore itself
+!.gitignore

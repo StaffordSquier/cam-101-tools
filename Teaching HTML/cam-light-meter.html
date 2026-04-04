@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CAM-101 — Reading Your Light Meter</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#F0F0F0; --surface:#FFFFFF; --text:#121212; --text2:#4A4A4A; --divider:#D0D0D0; --accent:#2F4A3F; --warn:#7A4A1E; --danger:#5C2F2F; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bg); font-family:'IBM Plex Sans',sans-serif; color:var(--text); }
+header { background:var(--surface); border-bottom:1px solid var(--divider); padding:16px 24px; }
+h1 { font-size:18px; font-weight:600; letter-spacing:-0.3px; }
+.sub { font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text2); margin-top:2px; }
+.main { max-width:820px; margin:0 auto; padding:28px 24px; }
+.lbl { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text2); }
+.card { background:var(--surface); border:1px solid var(--divider); border-radius:4px; padding:20px; }
+.row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+.tbtn-group { display:flex; border:1px solid var(--divider); border-radius:3px; overflow:hidden; width:fit-content; margin-bottom:24px; }
+.tbtn { padding:0 20px; height:34px; font-family:'IBM Plex Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; border:none; border-right:1px solid var(--divider); background:transparent; color:var(--text2); }
+.tbtn:last-child { border-right:none; }
+.tbtn.on { background:var(--accent); color:#fff; }
+.scene-card { background:var(--surface); border:1px solid var(--divider); border-radius:4px; padding:14px 20px; margin-bottom:16px; display:flex; align-items:center; gap:20px; }
+.ctrl { margin-bottom:20px; }
+.ctrl:last-child { margin-bottom:0; }
+.ctrl-top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+.big { font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:500; }
+.ends { display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text2); margin-top:4px; }
+input[type=range] { width:100%; accent-color:var(--accent); }
+.status { background:var(--surface); border:1px solid var(--divider); border-radius:4px; padding:16px 20px; display:flex; gap:14px; align-items:flex-start; }
+.dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; margin-top:3px; background:var(--divider); }
+.dot.ok { background:var(--accent); }
+.dot.warn { background:var(--warn); }
+.dot.off { background:var(--danger); }
+.sh { font-size:14px; font-weight:500; margin-bottom:3px; }
+.sd { font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text2); }
+.cap { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text2); text-align:center; line-height:1.6; margin-top:14px; }
+
+/* K1000 meter box */
+.meter-box { width:200px; height:280px; background:#FFFFFF; border:1px solid var(--divider); border-radius:6px; position:relative; overflow:hidden; }
+.m-vline   { position:absolute; top:30px; bottom:30px; width:1px; background:var(--divider); left:60px; }
+.m-hline   { position:absolute; left:10px; right:70px; height:1px; background:var(--divider); top:140px; }
+.m-circle  { position:absolute; width:80px; height:80px; border-radius:50%; border:1px solid var(--divider); left:20px; top:100px; }
+.m-track   { position:absolute; right:30px; top:28px; bottom:28px; width:4px; background:var(--divider); border-radius:2px; }
+.m-center  { position:absolute; right:22px; top:50%; transform:translateY(-50%); width:20px; height:3px; background:var(--accent); border-radius:1px; }
+.m-tick    { position:absolute; right:26px; width:12px; height:2px; background:#C9C5BE; border-radius:1px; }
+.m-lbl     { position:absolute; right:50px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text2); transform:translateY(-50%); }
+.m-lbl.z   { font-size:13px; font-weight:600; color:var(--accent); }
+/* THE NEEDLE — style.top as % exactly like CAM-04 style.left */
+.m-needle  { position:absolute; right:18px; width:46px; height:7px; background:#C14A00; border-radius:3.5px; top:50%; transform:translateY(-50%); transition:top 0.1s; }
+
+/* F3 */
+.f3-box    { width:200px; height:280px; background:#FFFFFF; border:1px solid var(--divider); border-radius:6px; position:relative; overflow:hidden; }
+.f3-vline  { position:absolute; top:30px; bottom:30px; width:1px; background:var(--divider); left:60px; }
+.f3-hline  { position:absolute; left:10px; right:60px; height:1px; background:var(--divider); top:140px; }
+.f3-circle { position:absolute; width:80px; height:80px; border-radius:50%; border:1px solid var(--divider); left:20px; top:100px; }
+.f3-leds   { position:absolute; right:14px; top:0; bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
+.f3-led    { width:28px; height:28px; border-radius:50%; background:var(--divider); transition:background 0.1s; }
+.f3-led.lg { width:36px; height:36px; }
+.f3-tag    { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:var(--text2); }
+
+/* Generic */
+.gen-box    { width:200px; height:280px; background:#FFFFFF; border:1px solid var(--divider); border-radius:6px; position:relative; overflow:hidden; }
+.gen-vline  { position:absolute; top:20px; bottom:60px; width:1px; background:var(--divider); left:100px; }
+.gen-hline  { position:absolute; left:10px; right:10px; height:1px; background:var(--divider); top:110px; }
+.gen-circle { position:absolute; width:80px; height:80px; border-radius:50%; border:1px solid var(--divider); left:60px; top:60px; }
+.gen-scale  { position:absolute; bottom:34px; left:18px; right:18px; height:2px; background:#C9C5BE; }
+.gen-tick   { position:absolute; bottom:36px; width:2px; background:#C9C5BE; height:14px; border-radius:1px; }
+.gen-slbl   { position:absolute; bottom:14px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text2); transform:translateX(-50%); }
+.gen-slbl.z { font-weight:600; color:var(--accent); }
+.gen-ref    { position:absolute; bottom:36px; left:100px; width:3px; height:62px; background:var(--text2); border-radius:2px; transform:translateX(-50%); transform-origin:bottom center; }
+.gen-needle { position:absolute; bottom:36px; left:100px; width:4px; height:62px; background:#C14A00; border-radius:2px; transform:translateX(-50%) rotate(0deg); transform-origin:bottom center; transition:transform 0.1s; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Reading Your Light Meter</h1>
+  <div class="sub">CAM-101 — Week 1 reference tool</div>
+</header>
+<div class="main">
+
+  <div class="lbl" style="margin-bottom:10px;">Choose your camera</div>
+  <div class="tbtn-group">
+    <button class="tbtn on" id="btn-k" onclick="setCamera('k1000')">Pentax K1000</button>
+    <button class="tbtn"    id="btn-f" onclick="setCamera('f3')">Nikon F3</button>
+    <button class="tbtn"    id="btn-g" onclick="setCamera('generic')">Match-needle</button>
+  </div>
+
+  <div class="scene-card">
+    <div style="flex-shrink:0;min-width:220px;">
+      <div class="lbl" style="margin-bottom:3px;">Light condition</div>
+      <div id="sname" style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500;margin-bottom:2px;">Bright overcast</div>
+      <div id="shint" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text2);">EV 11 · Try f/8 as a starting point</div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+      <input type="range" min="0" max="4" value="2" step="1" id="sl-scene">
+      <!-- gradient bar: bright sun left, heavy overcast right -->
+      <div style="height:20px;border-radius:3px;background:linear-gradient(to right,#FFE44D,#D4A017,#7A6010,#3A3020,#111111);border:1px solid var(--divider);position:relative;">
+        <div style="position:absolute;left:4px;top:50%;transform:translateY(-50%);font-family:'IBM Plex Mono',monospace;font-size:9px;color:#5a4a00;white-space:nowrap;">bright sun</div>
+        <div style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-family:'IBM Plex Mono',monospace;font-size:9px;color:#ccc;white-space:nowrap;">overcast</div>
+        <div id="scene-marker" style="position:absolute;top:-4px;width:3px;height:28px;background:#FFFFFF;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,0.3);left:50%;transform:translateX(-50%);transition:left 0.1s;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+
+    <div class="card" style="display:flex;flex-direction:column;align-items:center;">
+      <div class="lbl" style="align-self:flex-start;margin-bottom:16px;">Meter display</div>
+
+      <!-- K1000 -->
+      <div id="meter-k" class="meter-box">
+        <div class="m-vline"></div><div class="m-hline"></div><div class="m-circle"></div>
+        <div class="m-track"></div><div class="m-center"></div>
+        <div class="m-tick" style="top:11%"></div>
+        <div class="m-tick" style="top:30%"></div>
+        <div class="m-tick" style="top:70%"></div>
+        <div class="m-tick" style="top:89%"></div>
+        <div class="m-lbl" style="top:11%">+2</div>
+        <div class="m-lbl" style="top:30%">+1</div>
+        <div class="m-lbl z" style="top:50%">0</div>
+        <div class="m-lbl" style="top:70%">-1</div>
+        <div class="m-lbl" style="top:89%">-2</div>
+        <div class="m-needle" id="needle"></div>
+      </div>
+
+      <!-- F3 -->
+      <div id="meter-f" class="f3-box" style="display:none">
+        <div class="f3-vline"></div><div class="f3-hline"></div><div class="f3-circle"></div>
+        <div class="f3-leds">
+          <div class="f3-tag">+</div>
+          <div class="f3-led" id="f3o"></div>
+          <div class="f3-led lg" id="f3k"></div>
+          <div class="f3-led" id="f3u"></div>
+          <div class="f3-tag">-</div>
+        </div>
+      </div>
+
+      <!-- Generic -->
+      <div id="meter-g" class="gen-box" style="display:none">
+        <div class="gen-vline"></div><div class="gen-hline"></div><div class="gen-circle"></div>
+        <div class="gen-scale"></div>
+        <div class="gen-tick" style="left:18px"></div>
+        <div class="gen-tick" style="left:55px"></div>
+        <div class="gen-tick" style="left:92px;background:var(--accent);height:18px;"></div>
+        <div class="gen-tick" style="left:129px"></div>
+        <div class="gen-tick" style="left:163px"></div>
+        <div class="gen-slbl" style="left:18px">-2</div>
+        <div class="gen-slbl" style="left:55px">-1</div>
+        <div class="gen-slbl z" style="left:92px">0</div>
+        <div class="gen-slbl" style="left:129px">+1</div>
+        <div class="gen-slbl" style="left:163px">+2</div>
+        <div class="gen-ref"></div>
+        <div class="gen-needle" id="gneedle"></div>
+      </div>
+
+      <div class="cap" id="cap">Needle centered at 0 = correct exposure.<br>Adjust controls to center it.</div>
+    </div>
+
+    <div class="card">
+      <div class="lbl" style="margin-bottom:20px;">Your camera settings</div>
+      <div class="ctrl">
+        <div class="ctrl-top"><span class="lbl">Aperture</span><span class="big" id="vf">f/8</span></div>
+        <input type="range" min="0" max="7" value="5" step="1" id="sl-f">
+        <div class="ends"><span>f/1.4</span><span>f/16</span></div>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-top"><span class="lbl">Shutter speed</span><span class="big" id="vs">1/125</span></div>
+        <input type="range" min="0" max="8" value="3" step="1" id="sl-s">
+        <div class="ends"><span>1/1000</span><span>1/4</span></div>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-top"><span class="lbl">ISO</span><span class="big" id="vi">400</span></div>
+        <input type="range" min="0" max="3" value="2" step="1" id="sl-iso">
+        <div class="ends"><span>ISO 100</span><span>ISO 800</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="status">
+    <div class="dot" id="dot"></div>
+    <div><div class="sh" id="sh">Adjust your settings</div><div class="sd" id="sd">Move aperture, shutter speed, or ISO until the meter reads 0.</div></div>
+  </div>
+
+</div>
+<script>
+// grab sliders as variables exactly like CAM-04 does
+var apSl    = document.getElementById('sl-f');
+var shSl    = document.getElementById('sl-s');
+var isoSl   = document.getElementById('sl-iso');
+var sceneSl = document.getElementById('sl-scene');
+var needle  = document.getElementById('needle');
+var gneedle = document.getElementById('gneedle');
+var f3o     = document.getElementById('f3o');
+var f3k     = document.getElementById('f3k');
+var f3u     = document.getElementById('f3u');
+
+var F  = [1.4,2,2.8,4,5.6,8,11,16];
+var FL = ['1.4','2','2.8','4','5.6','8','11','16'];
+var S  = [1000,500,250,125,60,30,15,8,4];
+var SL = ['1/1000','1/500','1/250','1/125','1/60','1/30','1/15','1/8','1/4'];
+var I  = [100,200,400,800];
+var SC = [
+  {name:'Bright sun',      ev:15, hint:'EV 15  ·  Sunny 16: try f/16, 1/400'},
+  {name:'Light overcast',  ev:13, hint:'EV 13  ·  Try f/11 as a starting point'},
+  {name:'Bright overcast', ev:11, hint:'EV 11  ·  Try f/8 as a starting point'},
+  {name:'Open shade',      ev:10, hint:'EV 10  ·  Try f/5.6 as a starting point'},
+  {name:'Heavy overcast',  ev:9,  hint:'EV 9   ·  Try f/4 or open up further'}
+];
+
+function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
+
+function setCamera(c) {
+  document.getElementById('btn-k').className = 'tbtn' + (c==='k1000'?' on':'');
+  document.getElementById('btn-f').className = 'tbtn' + (c==='f3'?' on':'');
+  document.getElementById('btn-g').className = 'tbtn' + (c==='generic'?' on':'');
+  document.getElementById('meter-k').style.display = c==='k1000'  ? '' : 'none';
+  document.getElementById('meter-f').style.display = c==='f3'     ? '' : 'none';
+  document.getElementById('meter-g').style.display = c==='generic'? '' : 'none';
+  var caps = {
+    k1000:   'Needle centered at 0 = correct exposure.<br>Adjust controls to center it.',
+    f3:      'Green center LED = correct exposure.<br>+ LED = overexposed &nbsp; - LED = underexposed.',
+    generic: 'Align the orange needle to the gray needle at 0.<br>Both centered = correct exposure.'
+  };
+  document.getElementById('cap').innerHTML = caps[c];
+  update();
+}
+
+function update() {
+  // read directly from saved slider variables, exactly like CAM-04
+  var fi  = +apSl.value;
+  var si  = +shSl.value;
+  var ii  = +isoSl.value;
+  var sci = +sceneSl.value;
+  var sc  = SC[sci];
+
+  document.getElementById('vf').textContent    = 'f/'+FL[fi];
+  document.getElementById('vs').textContent    = SL[si];
+  document.getElementById('vi').textContent    = I[ii];
+  document.getElementById('sname').textContent = sc.name;
+  document.getElementById('shint').textContent = sc.hint;
+  // move gradient marker: 0=left(0%), 4=right(100%)
+  document.getElementById('scene-marker').style.left = (sci/4*100) + '%';
+
+  var ev    = Math.log2(F[fi]*F[fi]*S[si]*100/I[ii]);
+  var diff  = ev - sc.ev;
+  var cl    = clamp(diff, -2, 2);
+
+  // move needle with style.top as % — same as CAM-04 uses style.left
+  needle.style.top = clamp(50 - (cl/2)*39, 11, 89) + '%';
+
+  // F3 LEDs
+  f3o.style.background = '#E2E0DA';
+  f3k.style.background = '#E2E0DA';
+  f3u.style.background = '#E2E0DA';
+  if      (diff >  0.4) f3o.style.background = '#C14A00';
+  else if (diff < -0.4) f3u.style.background = '#C14A00';
+  else                  f3k.style.background = '#2F4A3F';
+
+  // generic needle rotation
+  gneedle.style.transform = 'translateX(-50%) rotate(' + clamp((cl/2)*30,-30,30).toFixed(1) + 'deg)';
+
+  // status
+  var dot=document.getElementById('dot'), sh=document.getElementById('sh'), sd=document.getElementById('sd');
+  var a=Math.abs(diff).toFixed(1);
+  if(Math.abs(diff)<0.4){
+    dot.className='dot ok'; sh.textContent='Correct exposure — meter reads 0'; sd.textContent='Your settings match the light. Good to shoot.';
+  } else if(diff>1.5){
+    dot.className='dot off'; sh.textContent='Overexposed — '+a+' stops over'; sd.textContent='Close down aperture (higher f-number) or use a faster shutter speed.';
+  } else if(diff>0){
+    dot.className='dot warn'; sh.textContent='Slightly overexposed — '+a+' stop over'; sd.textContent='Close down one stop on aperture, or increase shutter speed one stop.';
+  } else if(diff<-1.5){
+    dot.className='dot off'; sh.textContent='Underexposed — '+a+' stops under'; sd.textContent='Open up aperture (lower f-number) or use a slower shutter speed.';
+  } else {
+    dot.className='dot warn'; sh.textContent='Slightly underexposed — '+a+' stop under'; sd.textContent='Open up one stop on aperture, or decrease shutter speed one stop.';
+  }
+}
+
+// wire exactly like CAM-04: addEventListener on the saved variables
+apSl.addEventListener('input', update);
+shSl.addEventListener('input', update);
+isoSl.addEventListener('input', update);
+sceneSl.addEventListener('input', update);
+window.addEventListener('load', update);
+</script>
+</body>
+</html>

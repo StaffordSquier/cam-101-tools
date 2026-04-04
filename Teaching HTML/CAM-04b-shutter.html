@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAM-04b — Shutter Speed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F2EE;--surface:#FFFFFF;--text:#121212;--text-2:#4A4A4A;--div:#E2E0DA;--accent:#2F4A3F;--accent-dim:#3d5e51;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;font-family:var(--sans);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
+.page{display:flex;flex-direction:column;height:100%;}
+header{height:52px;background:var(--surface);border-bottom:1px solid var(--div);display:flex;align-items:center;padding:0 24px;gap:14px;flex-shrink:0;}
+header h1{font-size:18px;font-weight:600;letter-spacing:-.3px;margin:0;}
+.sub{font-family:var(--mono);font-size:12px;color:var(--text-2);}
+.modes{display:flex;border:1px solid var(--div);border-radius:3px;overflow:hidden;margin-left:auto;}
+.mbtn{padding:0 14px;height:34px;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:500;background:transparent;color:var(--text-2);border:none;border-right:1px solid var(--div);transition:background .15s,color .15s;}
+.mbtn:last-child{border-right:none;}
+.mbtn.active{background:var(--accent);color:#fff;}
+.hdr-val{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--accent);padding-left:16px;}
+.hint{display:none;padding:8px 24px;background:var(--surface);border-bottom:1px solid var(--div);font-size:13px;color:var(--text-2);flex-shrink:0;}
+.hint.show{display:block;}
+.hint strong{color:var(--text);}
+.body{display:flex;flex-direction:column;flex:1;min-height:0;}
+.viz{flex:1;min-height:0;position:relative;}
+canvas{position:absolute;top:0;left:0;width:100%;height:100%;display:block;}
+.strip{background:var(--surface);border-top:1px solid var(--div);padding:14px 24px 16px;flex-shrink:0;}
+.sl-row{display:flex;align-items:center;gap:16px;margin-bottom:10px;}
+.sl-lbl{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);white-space:nowrap;}
+.sl-val{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--accent);white-space:nowrap;min-width:100px;}
+.sl-wrap{flex:1;max-width:520px;}
+.sl-ends{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:4px;}
+input[type=range]{width:100%;-webkit-appearance:none;height:3px;border-radius:2px;outline:none;cursor:pointer;background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--div) var(--p,50%));}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--surface);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:transform .1s;}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15);}
+.sl-desc{font-size:13px;color:var(--text-2);line-height:1.4;flex:1;}
+.pills{display:flex;gap:6px;flex-wrap:wrap;}
+.pill{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:2px;background:transparent;border:1px solid var(--div);color:var(--text-2);opacity:.45;transition:all .15s;}
+.pill.on{opacity:1;background:rgba(47,74,63,.08);border-color:var(--accent);color:var(--accent);}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--div);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <h1>Shutter Speed</h1>
+  <span class="sub">CAM-04b &nbsp;·&nbsp; Week 1</span>
+  <div class="modes">
+    <button class="mbtn active" id="bStatic" onclick="setMode('static')">Static Camera</button>
+    <button class="mbtn" id="bPan" onclick="setMode('panning')">Panning</button>
+  </div>
+  <span class="hdr-val" id="hdrVal">1/125s</span>
+</header>
+<div class="hint" id="hint">
+  <strong>Panning</strong> — Camera tracks the moving subject. The horse stays sharp. Background blurs in the direction of motion. Watch the trees and fence posts. Sweet spot: 1/30s – 1/125s.
+</div>
+<div class="body">
+  <div class="viz"><canvas id="cv"></canvas></div>
+  <div class="strip">
+    <div class="sl-row">
+      <span class="sl-lbl">Speed</span>
+      <span class="sl-val" id="sVal">1/125s</span>
+      <div class="sl-wrap">
+        <input type="range" id="sl" min="0" max="8" step="1" value="4">
+        <div class="sl-ends"><span>1s — slow</span><span>1/2000s — fast</span></div>
+      </div>
+      <span class="sl-desc" id="sDesc">Freezes everyday motion. Standard handheld baseline.</span>
+    </div>
+    <div class="pills">
+      <span class="pill" id="pFrz">Freezes Motion</span>
+      <span class="pill" id="pBlr">Motion Blur</span>
+      <span class="pill" id="pHnd">Safe to Handhold</span>
+      <span class="pill" id="pTrp">Tripod Recommended</span>
+      <span class="pill" id="pBrt">More Light</span>
+      <span class="pill" id="pDrk">Less Light</span>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+'use strict';
+var SH=['1s','1/2s','1/8s','1/30s','1/125s','1/250s','1/500s','1/1000s','1/2000s'];
+var MS=[1000,500,125,33,8,4,2,1,0.5];
+var DESC_STATIC=[
+  'One full second. The horse smears across the entire frame as a long directional streak.',
+  'Half second. Heavy blur. The horse is a ghost of itself trailing across the scene.',
+  'One-eighth second. Strong directional blur — clearly a horse, clearly in motion.',
+  'One-thirtieth. Moderate blur. Motion is prominent. You can read the form, not the detail.',
+  'One-one-twenty-fifth. Handheld baseline. Fast action still blurs; most motion stops.',
+  'One-two-fifty. Freezes most motion cleanly. A galloping horse holds well.',
+  'One-five-hundred. Galloping horse frozen sharp mid-stride.',
+  'One-one-thousandth. Every leg position crisp. Fast action stops completely.',
+  'One-two-thousandth. Ultra-fast. Water droplets, spinning wheels — frozen solid.'
+];
+var DESC_PAN=[
+  '1s panning. Too slow to track cleanly. Both horse and background blur heavily.',
+  'Half second. Difficult to pan steadily. Strong background streak, subject still blurs.',
+  'One-eighth second. Background streaks dramatically. Subject starts to sharpen with steady tracking.',
+  'One-thirtieth. Panning sweet spot begins. Trees and posts streak, horse stays sharp.',
+  'One-one-twenty-fifth. Classic panning speed. Clean sharp subject, strong background motion.',
+  'One-two-fifty. Works well. Background streak is building — shutter is getting fast.',
+  'One-five-hundred. Background streak is light. Speed is starting to defeat panning.',
+  'One-one-thousandth. Almost no background blur. Panning has little visual effect.',
+  'One-two-thousandth. No background blur. At this speed panning does nothing visible.'
+];
+var cv=document.getElementById('cv'),ctx=cv.getContext('2d'),sl=document.getElementById('sl');
+var idx=4,mode='static';
+
+// ── SCENE COLORS ──────────────────────────────────────────────────
+// High contrast: light sky, dark trees, medium ground, light fence posts
+var SKY    = '#dde2e8'; // clean cool-warm light — clearly sky
+var GROUND = '#5c6450'; // distinctly darker warm olive — clearly ground
+var TRACK  = '#726e5c'; // slightly lighter strip for running surface
+var TREE_C = '#2a3220'; // very dark forest green canopy
+var TREE_T = '#1e2418'; // near-black trunk
+var FENCE  = '#c8c0a0'; // weathered light wood — high contrast against ground
+var FENCE2 = '#b4ac8c'; // rails, slightly darker
+var HORSE  = '#7A4A1E'; // Rookery --warn — dark reddish-brown / bay horse, separates from dark green trees
+
+// ── TREE & FENCE DATA (as fractions of W) ─────────────────────────
+// Defined once, used in both static and panning draw calls
+function getSceneElements(W, H, horizY) {
+  // Trees pushed to far edges — horse runs in the clear open zone
+  // Left cluster ends ~W*0.22, right cluster starts ~W*0.78, clear zone = W*0.22 to W*0.78
+  var trees = [
+    {tx:W*.03, cy:H*.14, cw:W*.048, ch:H*.20, tw:W*.018},
+    {tx:W*.11, cy:H*.09, cw:W*.058, ch:H*.24, tw:W*.022},
+    {tx:W*.20, cy:H*.16, cw:W*.042, ch:H*.18, tw:W*.016},
+    {tx:W*.80, cy:H*.10, cw:W*.055, ch:H*.22, tw:W*.020},
+    {tx:W*.89, cy:H*.13, cw:W*.046, ch:H*.20, tw:W*.017},
+    {tx:W*.96, cy:H*.08, cw:W*.052, ch:H*.24, tw:W*.020}
+  ];
+  // Fence posts
+  var posts = [];
+  var nPosts = 14;
+  for (var p = 0; p < nPosts; p++) {
+    posts.push(W*.015 + p * (W*.965 / (nPosts-1)));
+  }
+  return {trees:trees, posts:posts};
+}
+
+function drawTreeShape(t, horizY, ox, alpha) {
+  ctx.globalAlpha = Math.max(0, alpha);
+  // Canopy
+  ctx.fillStyle = TREE_C;
+  ctx.save(); ctx.translate(t.tx + ox, t.cy);
+  ctx.beginPath(); ctx.ellipse(0, 0, t.cw, t.ch, 0, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+  // Sub-canopy darker mass
+  ctx.fillStyle = TREE_T;
+  ctx.save(); ctx.translate(t.tx + ox, t.cy + t.ch*0.55);
+  ctx.beginPath(); ctx.ellipse(0, 0, t.cw*0.7, t.ch*0.52, 0, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+  // Trunk
+  ctx.fillStyle = TREE_T;
+  var trunkTop = t.cy + t.ch * 0.85;
+  ctx.fillRect(t.tx + ox - t.tw/2, trunkTop, t.tw, horizY - trunkTop + 2);
+}
+
+function drawFencePost(px, fenceY, H, ox, alpha) {
+  ctx.globalAlpha = Math.max(0, alpha);
+  ctx.fillStyle = FENCE;
+  ctx.fillRect(px + ox - 3, fenceY, 6, H*0.065);
+}
+
+// ── BACKGROUND ────────────────────────────────────────────────────
+function drawBackground(W, H, panBlur, blurAmt) {
+  var horizY = H * 0.47;
+  var fenceY = horizY + H*0.012;
+  var el = getSceneElements(W, H, horizY);
+
+  // Sky
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = SKY;
+  ctx.fillRect(0, 0, W, horizY);
+
+  // Ground
+  ctx.fillStyle = GROUND;
+  ctx.fillRect(0, horizY, W, H - horizY);
+
+  // Running track — lighter strip
+  ctx.fillStyle = TRACK;
+  ctx.fillRect(0, horizY, W, H*0.055);
+
+  // Horizon line
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = '#4a5040'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, horizY); ctx.lineTo(W, horizY); ctx.stroke();
+
+  if (panBlur && blurAmt > 0.03) {
+    // PANNING: smear trees and fence posts to the left
+    var spread = blurAmt * W * 0.58;
+    var copies = Math.ceil(6 + blurAmt * 28);
+
+    // Trees — dark blobs smear into horizontal bands
+    el.trees.forEach(function(t) {
+      for (var i = copies; i >= 0; i--) {
+        var tv = i / copies;
+        var ox = -(1 - tv) * spread;
+        var a = tv > 0.93 ? 1.0 : Math.max(0.01, tv * tv * 0.62);
+        drawTreeShape(t, horizY, ox, a);
+      }
+      ctx.globalAlpha = 1;
+    });
+
+    // Fence posts — vertical elements smear into clear horizontal bands
+    el.posts.forEach(function(px) {
+      for (var i = copies; i >= 0; i--) {
+        var tv = i / copies;
+        var ox = -(1 - tv) * spread;
+        var a = tv > 0.93 ? 1.0 : Math.max(0.01, tv * tv * 0.55);
+        drawFencePost(px, fenceY, H, ox, a);
+      }
+      ctx.globalAlpha = 1;
+    });
+
+    // Fence rails (horizontal — smear adds weight but they're already horizontal)
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = FENCE2;
+    ctx.fillRect(0, fenceY + H*0.016, W, H*0.008);
+    ctx.fillRect(0, fenceY + H*0.040, W, H*0.008);
+    ctx.globalAlpha = 1;
+
+    // Subtle sky haze from left edge (speed sense)
+    var sg = ctx.createLinearGradient(0, 0, W, 0);
+    sg.addColorStop(0, 'rgba(200,210,220,' + (blurAmt * 0.22) + ')');
+    sg.addColorStop(0.55, 'rgba(200,210,220,0)');
+    ctx.fillStyle = sg;
+    ctx.fillRect(0, 0, W, horizY);
+
+  } else {
+    // STATIC: crisp trees and fence
+    el.trees.forEach(function(t) { drawTreeShape(t, horizY, 0, 1.0); });
+
+    // Fence rails first, then posts on top
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = FENCE2;
+    ctx.fillRect(0, fenceY + H*0.016, W, H*0.008);
+    ctx.fillRect(0, fenceY + H*0.040, W, H*0.008);
+    ctx.fillStyle = FENCE;
+    el.posts.forEach(function(px) { ctx.fillRect(px - 3, fenceY, 6, H*0.065); });
+  }
+
+  ctx.globalAlpha = 1;
+}
+
+// ── MUYBRIDGE HORSE ───────────────────────────────────────────────
+function drawHorse(cx, groundY, s, alpha) {
+  if (alpha <= 0.005) return;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, Math.max(0, alpha));
+  ctx.fillStyle = HORSE; ctx.strokeStyle = HORSE;
+  var by = groundY - s * 1.65;
+
+  // Body
+  ctx.save(); ctx.translate(cx, by); ctx.rotate(-0.05);
+  ctx.beginPath(); ctx.ellipse(0, 0, s*.94, s*.32, 0, 0, Math.PI*2); ctx.fill(); ctx.restore();
+  // Rump
+  ctx.save(); ctx.translate(cx-s*.65, by-s*.08);
+  ctx.beginPath(); ctx.ellipse(0, 0, s*.30, s*.26, 0.18, 0, Math.PI*2); ctx.fill(); ctx.restore();
+  // Chest
+  ctx.save(); ctx.translate(cx+s*.62, by-s*.06);
+  ctx.beginPath(); ctx.ellipse(0, 0, s*.22, s*.24, -0.22, 0, Math.PI*2); ctx.fill(); ctx.restore();
+  // Neck
+  ctx.beginPath();
+  ctx.moveTo(cx+s*.7, by-s*.2); ctx.lineTo(cx+s*.55, by-s*.04);
+  ctx.bezierCurveTo(cx+s*.58, by-s*.52, cx+s*.78, by-s*.7, cx+s*.92, by-s*.74);
+  ctx.lineTo(cx+s*1.05, by-s*.6);
+  ctx.bezierCurveTo(cx+s*.9, by-s*.5, cx+s*.78, by-s*.36, cx+s*.7, by-s*.2);
+  ctx.fill();
+  // Head
+  ctx.beginPath();
+  ctx.moveTo(cx+s*.92, by-s*.74);
+  ctx.bezierCurveTo(cx+s*1.14, by-s*.84, cx+s*1.3, by-s*.78, cx+s*1.44, by-s*.65);
+  ctx.bezierCurveTo(cx+s*1.54, by-s*.52, cx+s*1.5, by-s*.36, cx+s*1.42, by-s*.3);
+  ctx.bezierCurveTo(cx+s*1.32, by-s*.24, cx+s*1.15, by-s*.3, cx+s*1.05, by-s*.42);
+  ctx.bezierCurveTo(cx+s*.98, by-s*.52, cx+s*.98, by-s*.62, cx+s*.92, by-s*.74);
+  ctx.fill();
+  // Ear
+  ctx.beginPath();
+  ctx.moveTo(cx+s*1.16, by-s*.82); ctx.lineTo(cx+s*1.22, by-s*.97); ctx.lineTo(cx+s*1.28, by-s*.82);
+  ctx.fill();
+  // Mane
+  ctx.lineWidth=s*.065; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(cx+s*1.0, by-s*.7); ctx.quadraticCurveTo(cx+s*.86, by-s*.55, cx+s*.76, by-s*.38); ctx.stroke();
+  // Legs — Muybridge airborne spread
+  ctx.lineWidth=s*.115; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(cx+s*.44,by+s*.28); ctx.quadraticCurveTo(cx+s*.56,by+s*.58,cx+s*.65,groundY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+s*.30,by+s*.28); ctx.quadraticCurveTo(cx+s*.38,by+s*.58,cx+s*.42,groundY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx-s*.38,by+s*.26); ctx.quadraticCurveTo(cx-s*.56,by+s*.56,cx-s*.68,groundY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx-s*.54,by+s*.24); ctx.quadraticCurveTo(cx-s*.80,by+s*.54,cx-s*.98,groundY); ctx.stroke();
+  // Tail
+  ctx.lineWidth=s*.09;
+  ctx.beginPath(); ctx.moveTo(cx-s*.88,by-s*.08); ctx.quadraticCurveTo(cx-s*1.22,by+s*.12,cx-s*1.38,by+s*.48); ctx.stroke();
+  ctx.lineWidth=s*.065;
+  ctx.beginPath(); ctx.moveTo(cx-s*.86,by-s*.04); ctx.quadraticCurveTo(cx-s*1.14,by+s*.02,cx-s*1.28,by+s*.34); ctx.stroke();
+
+  ctx.restore();
+}
+
+// ── STATIC CAMERA MODE ────────────────────────────────────────────
+function drawStatic(split, H, shIdx) {
+  var blurAmt = Math.max(0, (5 - shIdx) / 5);
+  drawBackground(split, H, false, 0);
+  var groundY = H * .47, s = Math.min(split * .095, H * .132);
+  var horseX = split * .56; // centered in clear zone between tree clusters
+
+  if (blurAmt < 0.015) {
+    drawHorse(horseX, groundY, s, 1.0);
+  } else {
+    // Directional trail — copies smear LEFT (where the horse was)
+    var copies = Math.ceil(6 + blurAmt * 38), spread = blurAmt * split * .74;
+    for (var i = 0; i < copies; i++) {
+      var t = copies > 1 ? i / (copies - 1) : 1;
+      var ox = -(1 - t) * spread;
+      var a = t > .88 ? Math.max(.62, 1.0 - blurAmt * .28) : Math.max(.008, t * t * .52 * (1 - blurAmt * .28));
+      drawHorse(horseX + ox, groundY, s, a);
+    }
+    if (blurAmt > .2) {
+      ctx.save(); ctx.globalAlpha = blurAmt * .25; ctx.fillStyle = '#2F4A3F';
+      var ax = split * .91, ay = H * .41;
+      ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(ax-11,ay-5); ctx.lineTo(ax-11,ay+5); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.font = '600 10px IBM Plex Mono,monospace'; ctx.fillStyle = '#8a9098'; ctx.textAlign = 'left';
+  ctx.fillText('MOTION — STATIC CAMERA', 14, 17);
+  ctx.font = '600 14px IBM Plex Mono,monospace'; ctx.fillStyle = 'rgba(47,74,63,.75)'; ctx.textAlign = 'right';
+  ctx.fillText(SH[shIdx], split - 14, 17);
+}
+
+// ── PANNING MODE ──────────────────────────────────────────────────
+function drawPanning(split, H, shIdx) {
+  var bgBlur = Math.max(0, (5 - shIdx) / 5);
+  var horseResidual = shIdx <= 1 ? Math.max(0, (1.5 - shIdx) / 1.5) * .28 : 0;
+  drawBackground(split, H, true, bgBlur);
+  var groundY = H * .47, s = Math.min(split * .095, H * .132), horseX = split * .50;
+
+  if (horseResidual < .02) {
+    drawHorse(horseX, groundY, s, 1.0);
+  } else {
+    var c2 = Math.ceil(3 + horseResidual * 10), sp2 = horseResidual * split * .1;
+    for (var j = 0; j < c2; j++) {
+      var t2 = c2 > 1 ? j / (c2 - 1) : 1;
+      drawHorse(horseX - (1 - t2) * sp2, groundY, s, t2 > .8 ? .88 : Math.max(.1, t2 * .55));
+    }
+  }
+
+  // Tracking arrow
+  ctx.save(); ctx.globalAlpha = .32; ctx.strokeStyle = '#2F4A3F'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 7]);
+  ctx.beginPath(); ctx.moveTo(split * .06, H * .43); ctx.lineTo(split * .75, H * .43); ctx.stroke();
+  ctx.setLineDash([]); ctx.fillStyle = '#2F4A3F';
+  ctx.beginPath(); ctx.moveTo(split*.75,H*.43); ctx.lineTo(split*.72,H*.425); ctx.lineTo(split*.72,H*.435); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.font = '9px IBM Plex Mono,monospace'; ctx.fillStyle = 'rgba(47,74,63,.42)'; ctx.textAlign = 'left';
+  ctx.fillText('camera & subject →', split * .07, H * .422);
+
+  ctx.globalAlpha = 1;
+  ctx.font = '600 10px IBM Plex Mono,monospace'; ctx.fillStyle = '#8a9098'; ctx.textAlign = 'left';
+  ctx.fillText('MOTION — PANNING', 14, 17);
+  ctx.font = '600 14px IBM Plex Mono,monospace'; ctx.fillStyle = 'rgba(47,74,63,.75)'; ctx.textAlign = 'right';
+  ctx.fillText(SH[shIdx], split - 14, 17);
+}
+
+// ── DURATION BAR ──────────────────────────────────────────────────
+function drawDurationPanel(sx, sy, pw, ph, shIdx) {
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#0d1620'; ctx.fillRect(sx, sy, pw, ph);
+  ctx.strokeStyle = '#E2E0DA'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx, sy + ph); ctx.stroke();
+  ctx.font = '600 10px IBM Plex Mono,monospace'; ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.textAlign = 'left';
+  ctx.fillText('SHUTTER OPEN', sx + 16, sy + 18);
+  var barW = 30, maxBarH = ph * .66, barX = sx + pw / 2 - barW / 2, barBottom = sy + ph * .86;
+  ctx.fillStyle = 'rgba(255,255,255,.05)'; ctx.fillRect(barX, barBottom - maxBarH, barW, maxBarH);
+  ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 1; ctx.strokeRect(barX, barBottom - maxBarH, barW, maxBarH);
+  var fillH = Math.max(3, ((8 - shIdx) / 8) * maxBarH), fillY = barBottom - fillH;
+  ctx.fillStyle = '#2F4A3F'; ctx.fillRect(barX, fillY, barW, fillH);
+  ctx.font = '10px IBM Plex Mono,monospace'; ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.textAlign = 'center';
+  ctx.fillText('open for', sx + pw / 2, fillY - 9);
+  var ms = MS[shIdx], msStr = ms >= 100 ? Math.round(ms) + 'ms' : ms >= 1 ? ms.toFixed(0) + 'ms' : ms.toFixed(1) + 'ms';
+  ctx.font = '500 16px IBM Plex Mono,monospace'; ctx.fillStyle = 'rgba(255,255,255,.85)';
+  ctx.fillText(msStr, sx + pw / 2, barBottom + 20);
+  ctx.font = '11px IBM Plex Mono,monospace'; ctx.fillStyle = 'rgba(255,255,255,.38)';
+  ctx.fillText(SH[shIdx], sx + pw / 2, barBottom + 36);
+}
+
+// ── CORE ──────────────────────────────────────────────────────────
+function draw() {
+  var W = cv.width, H = cv.height; ctx.clearRect(0, 0, W, H);
+  var split = Math.round(W * .63);
+  if (mode === 'static') drawStatic(split, H, idx);
+  else drawPanning(split, H, idx);
+  drawDurationPanel(split, 0, W - split, H, idx);
+}
+function setMode(m) {
+  mode = m;
+  document.getElementById('bStatic').classList.toggle('active', m === 'static');
+  document.getElementById('bPan').classList.toggle('active', m === 'panning');
+  var h = document.getElementById('hint');
+  if (m === 'panning') h.classList.add('show'); else h.classList.remove('show');
+  document.getElementById('sDesc').textContent = m === 'static' ? DESC_STATIC[idx] : DESC_PAN[idx];
+  draw();
+}
+function pill(id, on) { var e = document.getElementById(id); if (on) e.classList.add('on'); else e.classList.remove('on'); }
+function update() {
+  idx = +sl.value; sl.style.setProperty('--p', (idx / 8 * 100) + '%');
+  document.getElementById('hdrVal').textContent = SH[idx];
+  document.getElementById('sVal').textContent = SH[idx];
+  document.getElementById('sDesc').textContent = mode === 'static' ? DESC_STATIC[idx] : DESC_PAN[idx];
+  pill('pFrz', idx >= 5); pill('pBlr', idx <= 3);
+  pill('pHnd', idx >= 4); pill('pTrp', idx <= 2);
+  pill('pBrt', idx <= 2); pill('pDrk', idx >= 6);
+  draw();
+}
+function resize() { var p = cv.parentElement; cv.width = p.offsetWidth; cv.height = p.offsetHeight; draw(); }
+sl.addEventListener('input', update);
+if (typeof ResizeObserver !== 'undefined') { new ResizeObserver(resize).observe(cv.parentElement); }
+else { window.addEventListener('resize', resize); }
+resize(); update();
+</script>
+</body>
+</html>

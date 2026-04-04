@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAM-04 — The Exposure Triangle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F4F2EE; --surface:#FFFFFF; --text:#121212; --text-2:#4A4A4A;
+  --dim:#8A8A8A; --div:#E2E0DA; --accent:#2F4A3F;
+  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;font-family:var(--sans);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
+
+/* ── HEADER ── */
+header{height:52px;background:var(--surface);border-bottom:1px solid var(--div);display:flex;align-items:center;padding:0 24px;gap:16px;flex-shrink:0;}
+header h1{font-size:18px;font-weight:600;letter-spacing:-.3px;margin:0;}
+.sub{font-family:var(--mono);font-size:12px;color:var(--text-2);flex:1;}
+.modes{display:flex;border:1px solid var(--div);border-radius:3px;overflow:hidden;}
+.mbtn{padding:0 14px;height:34px;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:500;background:transparent;color:var(--text-2);border:none;border-right:1px solid var(--div);transition:background .15s,color .15s;}
+.mbtn:last-child{border-right:none;}
+.mbtn.active{background:var(--accent);color:#fff;}
+.hint{display:none;padding:8px 24px;background:var(--surface);border-bottom:1px solid var(--div);font-size:13px;color:var(--text-2);}
+.hint.show{display:block;}
+.hint strong{color:var(--text);}
+
+/* ── PAGE LAYOUT ── */
+.wrap{display:flex;flex-direction:column;height:calc(100% - 52px);}
+.main{display:grid;grid-template-columns:1fr 320px;flex:1;min-height:0;}
+
+/* ── LEFT COLUMN ── */
+.left-col{display:flex;flex-direction:column;border-right:1px solid var(--div);overflow:hidden;}
+.diagram-area{flex:1;min-height:0;position:relative;}
+#mainCanvas{position:absolute;top:0;left:0;width:100%;height:100%;display:block;}
+
+/* EV readout — top-left of viewfinder */
+.hud{position:absolute;top:14px;left:14px;z-index:5;
+  background:rgba(255,255,255,0.90);border:1px solid var(--div);border-radius:3px;
+  padding:9px 13px;line-height:1.65;}
+.hud-ev{font-family:var(--mono);font-size:1.15rem;font-weight:500;display:block;}
+.hud-lbl{font-family:var(--mono);font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;}
+.hud-st{font-size:12px;display:block;margin-top:2px;}
+
+/* Triangle section — sits over the bottom-right green canvas area */
+.tri-section{
+  position:absolute;z-index:5;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:10px 12px 6px;pointer-events:none;
+}
+.tri-sect-lbl{
+  font-family:var(--mono);font-size:10px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.07em;
+  color:var(--text-2);margin-bottom:2px;flex-shrink:0;
+}
+#triSvg{flex:1;min-height:0;width:100%;overflow:visible;}
+@keyframes pulse{0%,100%{stroke-width:1.5;opacity:.65;}50%{stroke-width:5;opacity:1;}}
+.cen-ok{animation:pulse 1.8s ease-in-out infinite;}
+
+/* ── METER BAR ── */
+.meter-bar{background:var(--surface);border-top:1px solid var(--div);padding:9px 20px 11px;flex-shrink:0;}
+.meter-lbl{font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:5px;}
+.meter-track{width:100%;height:2px;background:var(--div);border-radius:1px;position:relative;}
+.meter-ctr{position:absolute;left:50%;top:-4px;width:1px;height:10px;background:var(--dim);transform:translateX(-50%);}
+.meter-ndl{position:absolute;top:-7px;width:2px;height:16px;background:var(--accent);border-radius:1px;transform:translateX(-50%);transition:left .2s;}
+.meter-ends{font-family:var(--mono);font-size:10px;color:var(--dim);display:flex;justify-content:space-between;margin-top:3px;}
+
+/* ── CONTROLS ── */
+.controls{background:var(--surface);overflow-y:auto;}
+.ctrl{padding:16px 20px;border-bottom:1px solid var(--div);}
+.ctrl:last-child{border-bottom:none;}
+.ctrl-hdr{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px;}
+.ctrl-name{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);}
+.ctrl-val{font-family:var(--mono);font-size:18px;font-weight:500;color:var(--accent);}
+.ctrl-desc{font-size:13px;color:var(--text-2);line-height:1.5;margin-bottom:10px;}
+.auto-bdg{display:none;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:2px;margin-left:8px;background:rgba(47,74,63,.1);border:1px solid var(--accent);color:var(--accent);}
+.auto-bdg.show{display:inline;}
+.iris-wrap{display:flex;align-items:center;gap:14px;margin:6px 0 12px;padding:12px;background:var(--bg);border-radius:3px;border:1px solid var(--div);}
+.iris-ring{width:72px;height:72px;border-radius:50%;background:#0a0c12;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:2px solid #1e2a38;}
+#apCanvas{display:block;border-radius:50%;}
+.iris-info{flex:1;}
+.iris-fstop{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--accent);line-height:1;}
+.iris-sub{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:5px;}
+.sl-wrap{position:relative;margin-bottom:8px;padding:3px 0;}
+.sl-lock{display:none;position:absolute;inset:0;z-index:2;cursor:not-allowed;}
+.sl-lock.show{display:block;}
+input[type=range]{width:100%;-webkit-appearance:none;height:3px;border-radius:2px;outline:none;cursor:pointer;background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--div) var(--p,50%));}
+input[type=range].locked{opacity:.25;pointer-events:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;background:var(--surface);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:transform .1s;}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15);}
+.pills{display:flex;gap:5px;flex-wrap:wrap;}
+.pill{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:2px;background:transparent;border:1px solid var(--div);color:var(--dim);opacity:.5;transition:all .15s;}
+.pill.on{opacity:1;background:rgba(47,74,63,.08);border-color:var(--accent);color:var(--accent);}
+
+/* ── SUMMARY BAR ── */
+.tri-panel{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--div);background:var(--surface);flex-shrink:0;}
+.tc{padding:10px 16px;border-right:1px solid var(--div);position:relative;overflow:hidden;}
+.tc:last-child{border-right:none;}
+.tc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);}
+.tc-name{font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:2px;}
+.tc-val{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--text);margin-bottom:5px;}
+.tc-bar{height:3px;background:var(--div);border-radius:2px;overflow:hidden;margin-bottom:5px;}
+.tc-fill{height:100%;border-radius:2px;transition:width .3s;background:var(--accent);}
+.tc-note{font-size:11px;color:var(--text-2);line-height:1.4;}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--div);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>The Exposure Triangle</h1>
+  <span class="sub">CAM-04 &nbsp;·&nbsp; Week 2</span>
+  <div class="modes">
+    <button class="mbtn active" id="bManual" onclick="setMode('manual')">Manual</button>
+    <button class="mbtn" id="bAv"     onclick="setMode('av')">Av — Aperture Priority</button>
+    <button class="mbtn" id="bTv"     onclick="setMode('tv')">Tv — Shutter Priority</button>
+    <button class="mbtn" id="bIso"    onclick="setMode('iso')">ISO Priority</button>
+  </div>
+</header>
+
+<div class="hint" id="hint"></div>
+
+<div class="wrap">
+  <div class="main">
+
+    <div class="left-col">
+      <div class="diagram-area">
+        <canvas id="mainCanvas"></canvas>
+
+        <!-- EV readout -->
+        <div class="hud">
+          <span class="hud-ev" id="evDisp">EV 0</span>
+          <span class="hud-lbl">Exposure Value</span><br>
+          <span class="hud-st" id="evSt">Correct Exposure</span>
+        </div>
+
+        <!-- Triangle — positioned over green canvas region by JS -->
+        <div class="tri-section" id="triSection">
+          <div class="tri-sect-lbl">Exposure Triangle</div>
+          <svg id="triSvg" viewBox="-14 -24 408 334" preserveAspectRatio="xMidYMid meet">
+            <line id="tlAp"  x1="190" y1="16"  x2="16"  y2="276" stroke="#2F4A3F" stroke-linecap="round" stroke-width="2"/>
+            <line id="tlSh"  x1="16"  y1="276" x2="364" y2="276" stroke="#2F4A3F" stroke-linecap="round" stroke-width="2"/>
+            <line id="tlIso" x1="364" y1="276" x2="190" y2="16"  stroke="#2F4A3F" stroke-linecap="round" stroke-width="2"/>
+            <!-- Nodes: --surface fill, --divider border -->
+            <circle cx="190" cy="16"  r="28" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="1.5"/>
+            <circle cx="16"  cy="276" r="28" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="1.5"/>
+            <circle cx="364" cy="276" r="28" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="1.5"/>
+            <!-- Edge labels: --text-2 -->
+            <text text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" font-weight="600" fill="#4A4A4A" letter-spacing="1" transform="translate(84,142) rotate(-60)">APERTURE</text>
+            <text x="190" y="299" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" font-weight="600" fill="#4A4A4A" letter-spacing="1">SHUTTER SPEED</text>
+            <text text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" font-weight="600" fill="#4A4A4A" letter-spacing="1" transform="translate(296,142) rotate(60)">ISO</text>
+            <!-- Values in nodes: --accent -->
+            <text id="nvAp"  x="190" y="21"  text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="13" font-weight="600" fill="#2F4A3F">f/5.6</text>
+            <text id="nvSh"  x="16"  y="281" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" fill="#2F4A3F">1/125</text>
+            <text id="nvIso" x="364" y="281" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" fill="#2F4A3F">400</text>
+            <!-- Edge markers: --accent fill -->
+            <circle id="mkAp"  r="5.5" fill="#2F4A3F"/>
+            <circle id="mkSh"  r="5.5" fill="#2F4A3F"/>
+            <circle id="mkIso" r="5.5" fill="#2F4A3F"/>
+            <!-- Center EV: --divider ring at rest -->
+            <circle id="cen" cx="190" cy="182" r="36" fill="rgba(47,74,63,0.04)" stroke="#E2E0DA" stroke-width="1.5"/>
+            <text x="190" y="176" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="8" fill="#8A8A8A" letter-spacing="1.5">EXPOSURE</text>
+            <text id="evLbl" x="190" y="196" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="17" font-weight="600" fill="#121212">EV 0</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="meter-bar">
+        <div class="meter-lbl">Exposure Meter</div>
+        <div class="meter-track">
+          <div class="meter-ctr"></div>
+          <div class="meter-ndl" id="needle" style="left:50%"></div>
+        </div>
+        <div class="meter-ends"><span>−3 Under</span><span>0</span><span>+3 Over</span></div>
+      </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <div class="ctrl ap-sec">
+        <div class="ctrl-hdr">
+          <span class="ctrl-name">Aperture <span class="auto-bdg" id="bdgAp">Auto</span></span>
+          <span class="ctrl-val" id="apVal">f/5.6</span>
+        </div>
+        <div class="ctrl-desc">How wide the lens opens. Wider = more light, shallower depth of field. Narrower = less light, more in focus.</div>
+        <div class="iris-wrap">
+          <div class="iris-ring"><canvas id="apCanvas" width="68" height="68"></canvas></div>
+          <div class="iris-info">
+            <div class="iris-fstop" id="apFstop">f/5.6</div>
+            <div class="iris-sub">f/1.4 wide open → f/22 stopped down</div>
+          </div>
+        </div>
+        <div class="sl-wrap"><div class="sl-lock" id="lockAp"></div><input type="range" id="apSl" min="0" max="8" step="1" value="4"></div>
+        <div class="pills">
+          <span class="pill" id="pApBrt">Brighter</span><span class="pill" id="pApDrk">Darker</span>
+          <span class="pill" id="pApShw">Shallow DOF</span><span class="pill" id="pApDp">Deep DOF</span>
+        </div>
+      </div>
+      <div class="ctrl sh-sec">
+        <div class="ctrl-hdr">
+          <span class="ctrl-name">Shutter Speed <span class="auto-bdg" id="bdgSh">Auto</span></span>
+          <span class="ctrl-val" id="shVal">1/125s</span>
+        </div>
+        <div class="ctrl-desc">How long the shutter stays open. Slower = more light, motion blur risk. Faster = less light, frozen motion.</div>
+        <div class="sl-wrap"><div class="sl-lock" id="lockSh"></div><input type="range" id="shSl" min="0" max="8" step="1" value="4"></div>
+        <div class="pills">
+          <span class="pill" id="pShBrt">Brighter</span><span class="pill" id="pShDrk">Darker</span>
+          <span class="pill" id="pShFrz">Freezes Motion</span><span class="pill" id="pShBlr">Motion Blur</span>
+        </div>
+      </div>
+      <div class="ctrl iso-sec">
+        <div class="ctrl-hdr">
+          <span class="ctrl-name">ISO <span class="auto-bdg" id="bdgIso">Auto</span></span>
+          <span class="ctrl-val" id="isoVal">ISO 400</span>
+        </div>
+        <div class="ctrl-desc">Sensor sensitivity. Higher ISO = brighter in low light, but adds grain and noise.</div>
+        <div class="sl-wrap"><div class="sl-lock" id="lockIso"></div><input type="range" id="isoSl" min="0" max="8" step="1" value="2"></div>
+        <div class="pills">
+          <span class="pill" id="pIsoBrt">Brighter</span><span class="pill" id="pIsoDrk">Darker</span>
+          <span class="pill" id="pIsoCln">Clean</span><span class="pill" id="pIsoNsy">Noisy / Grain</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tri-panel">
+    <div class="tc"><div class="tc-name">Aperture</div><div class="tc-val" id="tcApV">f/5.6</div><div class="tc-bar"><div class="tc-fill" id="tcApF" style="width:50%"></div></div><div class="tc-note" id="tcApN">Moderate depth of field.</div></div>
+    <div class="tc"><div class="tc-name">Shutter Speed</div><div class="tc-val" id="tcShV">1/125s</div><div class="tc-bar"><div class="tc-fill" id="tcShF" style="width:50%"></div></div><div class="tc-note" id="tcShN">Freezes everyday motion.</div></div>
+    <div class="tc"><div class="tc-name">ISO</div><div class="tc-val" id="tcIsoV">ISO 400</div><div class="tc-bar"><div class="tc-fill" id="tcIsoF" style="width:25%"></div></div><div class="tc-note" id="tcIsoN">Low noise. Moderate light.</div></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── DATA ──────────────────────────────────────────────────────────
+var AP  = ['f/1.4','f/2','f/2.8','f/4','f/5.6','f/8','f/11','f/16','f/22'];
+var SH  = ['1s','1/2s','1/8s','1/30s','1/125s','1/250s','1/500s','1/1000s','1/2000s'];
+var ISO = [100,200,400,800,1600,3200,6400,12800,25600];
+var DOF_N=['Extremely shallow — only subject sharp.','Very shallow. Background falls off quickly.','Shallow. Subject sharp, background soft.','Moderately shallow.','Moderate depth of field.','Good depth. Background mostly sharp.','Deep. Most of scene sharp.','Very deep depth of field.','Maximum. Front to back sharp.'];
+var SH_N =['Very slow — heavy motion blur.','Slow — significant blur.','Moderate blur on fast subjects.','Slight blur possible.','Freezes everyday motion.','Freezes most motion.','Freezes fast action.','Freezes very fast motion.','Ultra-fast — freezes anything.'];
+var ISO_N=['Cleanest image. Bright light needed.','Very clean. Good daylight.','Low noise. Most outdoor conditions.','Minor noise. Works in most light.','Noticeable grain. Dim interiors.','Significant grain.','Heavy grain.','Strong noise.','Extreme noise.'];
+
+// ── MATH ──────────────────────────────────────────────────────────
+function apEV(i){return 4-i;}
+function shEV(i){return 4-i;}
+function isoEV(i){return i-2;}
+function totalEV(a,s,iso){return apEV(a)+shEV(s)+isoEV(iso);}
+function clamp(v,lo,hi){return v<lo?lo:v>hi?hi:v;}
+
+// Blur: at t=1 (f/22) → openness=0 → blur=0 for everything
+function calcBlur(depth,t){
+  if(depth===0)return 0;
+  return Math.min(Math.abs(depth)*(1-t)*(depth>0?9:7),20);
+}
+
+// ── STATE ─────────────────────────────────────────────────────────
+var apI=4,shI=4,isoI=2,mode='manual';
+var apSl=document.getElementById('apSl'),shSl=document.getElementById('shSl'),isoSl=document.getElementById('isoSl');
+
+// ── CANVAS ────────────────────────────────────────────────────────
+var cv=document.getElementById('mainCanvas'),ctx=cv.getContext('2d');
+var triSec=document.getElementById('triSection');
+
+// Canvas layout — computed in resize(), used in draw()
+var vfH=0,dofW=0,dofY=0;
+
+function resize(){
+  var p=cv.parentElement;
+  cv.width=p.offsetWidth; cv.height=p.offsetHeight;
+  // Viewfinder: top 58%
+  vfH=Math.round(cv.height*0.58);
+  // Bottom panels: lower 42%, split 50/50
+  dofY=vfH;
+  dofW=Math.round(cv.width*0.50);
+  // Position triangle overlay over right-half of bottom
+  triSec.style.top  = vfH+'px';
+  triSec.style.left = dofW+'px';
+  triSec.style.width  = (cv.width-dofW)+'px';
+  triSec.style.height = (cv.height-vfH)+'px';
+  draw();
+}
+
+function rr(c,x,y,w,h,r){
+  c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);
+  c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);
+  c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath();
+}
+
+// ── MAIN DRAW ─────────────────────────────────────────────────────
+function draw(){
+  var W=cv.width,H=cv.height;
+  if(!W||!H)return;
+  ctx.clearRect(0,0,W,H);
+  var t=apI/8, ev=totalEV(apI,shI,isoI);
+
+  // 1. Viewfinder scene — full width, top 58%
+  drawViewfinder(W,0,vfH,t,ev);
+
+  // Divider: viewfinder / bottom panels
+  ctx.fillStyle='#c8c2ba'; ctx.fillRect(0,vfH,W,1);
+
+  // 2. DOF top-down diagram — bottom-left 50%
+  drawTopDown(dofW,dofY,W,H,t);
+
+  // 3. Triangle panel background — bottom-right 50% (SVG sits on top via HTML)
+  // --surface white, not accent green. Accent is for lines/buttons, not fills.
+  ctx.fillStyle='#FFFFFF';
+  ctx.fillRect(dofW,dofY,W-dofW,H-dofY);
+  // --divider separator between the two bottom panels
+  ctx.fillStyle='#E2E0DA';
+  ctx.fillRect(dofW,dofY,1,H-dofY);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// VIEWFINDER — perspective scene, five posts receding left→right
+// Near: huge + low + warm + high contrast
+// Far: tiny + high + cool + faded (atmospheric perspective)
+// ─────────────────────────────────────────────────────────────────
+function drawViewfinder(W,startY,H,t,ev){
+  var bot=startY+H;
+  var horizon=startY+H*0.38;
+  var vpX=W*0.90, vpY=horizon;
+
+  // Sky — warm pale, no cool blue. Rookery has zero cool tones.
+  var sky=ctx.createLinearGradient(0,startY,0,horizon);
+  sky.addColorStop(0,'#e8e2d8'); sky.addColorStop(1,'#ece8e0');
+  ctx.fillStyle=sky; ctx.fillRect(0,startY,W,horizon-startY);
+
+  // Ground — warm parchment-tan, harmonizes with --bg (#F4F2EE)
+  var gnd=ctx.createLinearGradient(0,horizon,0,bot);
+  gnd.addColorStop(0,'#cec4a4'); gnd.addColorStop(1,'#d8d0b4');
+  ctx.fillStyle=gnd; ctx.fillRect(0,horizon,W,bot-horizon);
+
+  // Horizon line — warm, --divider family
+  ctx.strokeStyle='rgba(160,148,112,0.45)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,horizon); ctx.lineTo(W,horizon); ctx.stroke();
+
+  // Ground perspective lines — very subtle warm
+  ctx.strokeStyle='rgba(156,144,108,0.18)'; ctx.lineWidth=1;
+  for(var gli=0;gli<=8;gli++){
+    ctx.beginPath(); ctx.moveTo(vpX,vpY); ctx.lineTo((gli/8)*W,bot); ctx.stroke();
+  }
+
+  // Section label — warm --text-2
+  ctx.font='600 10px IBM Plex Mono,monospace'; ctx.fillStyle='rgba(74,68,50,0.35)';
+  ctx.textAlign='left'; ctx.fillText('VIEWFINDER',14,startY+14);
+
+  // ── Five posts on perspective line ───────────────────────────
+  // Anchor line: from (W*0.06, bot) toward VP at (W*0.90, horizon)
+  // s values: 0.06 (near) → 0.74 (far)
+  var ancX=W*0.06, ancY=bot;
+  var maxW=72, maxH=H*0.80;
+  var sVals=[0.06,0.20,0.38,0.57,0.73];
+  var depths=[2,1,0,-1,-2];
+  var labels=['Near','','Subject','','Far'];
+
+  function postColor(s){
+    // Warm grey spectrum: near=#4a4844 (close to --text), far=#ccc8c0 (close to --divider)
+    // Subject at depth 0 uses --bg (#F4F2EE) — the focal object matches the parchment
+    var nr=74,ng=72,nb=68,  // near: warm near-black
+        fr=204,fg=200,fb=192; // far: warm light grey, close to --divider
+    return 'rgb('+Math.round(nr+(fr-nr)*s)+','+Math.round(ng+(fg-ng)*s)+','+Math.round(nb+(fb-nb)*s)+')';
+  }
+
+  // Subject post gets --bg parchment: it's the reference, correctly exposed object
+  var subjectColor='#F4F2EE';
+
+  var posts=[];
+  for(var pi=0;pi<5;pi++){
+    var s=sVals[pi];
+    posts.push({
+      depth:depths[pi], s:s, lbl:labels[pi],
+      cx:ancX+s*(vpX-ancX),
+      baseY:ancY+s*(vpY-ancY),
+      w:Math.max(Math.round(maxW*Math.pow(1-s,0.85)),8),
+      h:Math.max(Math.round(maxH*Math.pow(1-s,0.80)),12),
+      color:postColor(s)
+    });
+  }
+
+  // Draw back→front; subject last (always on top)
+  var drawOrder=[posts[4],posts[3],posts[1],posts[0],posts[2]];
+  drawOrder.forEach(function(p){
+    var isSub=p.depth===0, blur=calcBlur(p.depth,t), ptop=p.baseY-p.h;
+    ctx.save();
+    if(blur>0.4) ctx.filter='blur('+blur.toFixed(1)+'px)';
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,'+(0.18*(1-p.s*0.65)).toFixed(2)+')';
+    ctx.beginPath(); ctx.ellipse(p.cx,p.baseY,p.w*0.55,p.w*0.12,0,0,Math.PI*2); ctx.fill();
+    // Body — subject uses --bg parchment as its color
+    ctx.fillStyle=isSub?subjectColor:p.color; rr(ctx,p.cx-p.w/2,ptop,p.w,p.h,Math.max(2,p.w*0.06)); ctx.fill();
+    // Top highlight
+    var hl=ctx.createLinearGradient(0,ptop,0,ptop+p.h*0.30);
+    hl.addColorStop(0,'rgba(255,255,255,'+(0.18*(1-p.s*0.65)).toFixed(2)+')');
+    hl.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=hl; rr(ctx,p.cx-p.w/2,ptop,p.w,p.h*0.30,Math.max(2,p.w*0.06)); ctx.fill();
+    // Right shadow
+    var shd=ctx.createLinearGradient(p.cx+p.w/2-p.w*0.22,0,p.cx+p.w/2,0);
+    shd.addColorStop(0,'rgba(0,0,0,0)'); shd.addColorStop(1,'rgba(0,0,0,'+(0.18*(1-p.s*0.70)).toFixed(2)+')');
+    ctx.fillStyle=shd; rr(ctx,p.cx-p.w/2,ptop,p.w,p.h,Math.max(2,p.w*0.06)); ctx.fill();
+    ctx.filter='none'; ctx.restore();
+
+    // Focus bracket on subject
+    if(isSub){
+      var bL=Math.max(6,p.w*0.36),bW=Math.max(6,p.h*0.22);
+      var x1=p.cx-p.w/2-4,x2=p.cx+p.w/2+4,y1=ptop-4,y2=p.baseY+4;
+      ctx.strokeStyle='rgba(47,74,63,0.65)'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(x1+bL,y1); ctx.lineTo(x1,y1); ctx.lineTo(x1,y1+bW); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x2-bL,y1); ctx.lineTo(x2,y1); ctx.lineTo(x2,y1+bW); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x1+bL,y2); ctx.lineTo(x1,y2); ctx.lineTo(x1,y2-bW); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x2-bL,y2); ctx.lineTo(x2,y2); ctx.lineTo(x2,y2-bW); ctx.stroke();
+    }
+
+    // Labels
+    if(p.lbl){
+      var lb=Math.min(calcBlur(p.depth,t)*0.28,3.2);
+      ctx.save();
+      if(lb>0.4) ctx.filter='blur('+lb.toFixed(1)+'px)';
+      ctx.globalAlpha=isSub?0.85:Math.max(0.28,0.72-calcBlur(p.depth,t)/22);
+      ctx.font=(isSub?'600':'400')+' 9px IBM Plex Mono,monospace';
+      ctx.textAlign='center'; ctx.fillStyle=isSub?'#3a5a50':'rgba(70,62,48,0.8)';
+      ctx.fillText(p.lbl,p.cx,p.baseY+12+(p.s>0.50&&!isSub?0:0));
+      ctx.filter='none'; ctx.restore();
+    }
+  });
+
+  // Slow shutter streaks on subject
+  if(shI<=2){
+    var str=(2-shI+1)/3, sub=posts[2];
+    var stTop=sub.baseY-sub.h;
+    ctx.save();
+    for(var si=0;si<6+Math.round(str*9);si++){
+      var sy=stTop+(si/(5+Math.round(str*9)))*sub.h;
+      ctx.globalAlpha=Math.max(0,str*0.15*(1-Math.abs(si/(5+Math.round(str*9)-1)-0.5)*1.4));
+      ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.lineWidth=1.1;
+      ctx.beginPath(); ctx.moveTo(sub.cx-sub.w/2-str*24,sy); ctx.lineTo(sub.cx+sub.w/2+str*24,sy); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // EV overlay
+  if(ev!==0){
+    var mx=3.5,cl=Math.max(-mx,Math.min(mx,ev));
+    ctx.fillStyle=ev>0?'rgba(255,255,255,'+Math.min(cl/mx*0.82,0.82)+')':'rgba(0,0,0,'+Math.min(Math.abs(cl)/mx*0.88,0.88)+')';
+    ctx.fillRect(0,startY,W,H);
+  }
+
+  // ISO grain
+  if(isoI>=3){
+    var ga=(isoI-2)/6;
+    ctx.save();
+    for(var gi=0;gi<Math.round(W*H*ga*0.016);gi++){
+      var gx=Math.random()*W,gy=startY+Math.random()*H,gb=Math.random()>0.5?210:30;
+      ctx.globalAlpha=Math.random()*ga*0.38;
+      ctx.fillStyle='rgb('+gb+','+gb+','+gb+')';
+      ctx.beginPath(); ctx.arc(gx,gy,0.4+Math.random()*0.7,0,Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// DOF TOP-DOWN — bottom-left panel
+// Camera at left → 5 objects at increasing distances along centerline
+// Sharp zone band expands from sliver (f/1.4) to full width (f/22)
+// ─────────────────────────────────────────────────────────────────
+function drawTopDown(panW,startY,fullW,fullH,t){
+  var panH=fullH-startY;
+
+  // Section label
+  ctx.font='600 10px IBM Plex Mono,monospace';
+  ctx.fillStyle='#aaa89e'; ctx.textAlign='left';
+  ctx.fillText('DEPTH OF FIELD — TOP VIEW',14,startY+14);
+
+  var midY=startY+panH*0.50, camRX=46;
+  var pad=18, dL=camRX+pad, dR=panW-pad;
+
+  var objs=[{d:2,lbl:'Near'},{d:1,lbl:''},{d:0,lbl:'Subject'},{d:-1,lbl:''},{d:-2,lbl:'Far'}];
+  function dToX(d){return dL+(2-d)/4*(dR-dL);}
+  var subX=dToX(0);
+
+  // Zone boundaries from blur physics
+  var THRESH=0.8;
+  var fgD=t>=1?99:THRESH/(9*(1-t)), bgD=t>=1?99:THRESH/(7*(1-t));
+  var zL=Math.max(camRX+2, dToX(Math.min(fgD,2.5)));
+  var zR=Math.min(panW-4, dToX(-Math.min(bgD,2.5)));
+
+  // Background
+  ctx.fillStyle='#faf8f4'; ctx.fillRect(0,startY,panW,panH);
+
+  // FOV cone
+  var fov=panH*0.26;
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(camRX,midY); ctx.lineTo(panW,midY-fov); ctx.lineTo(panW,midY+fov); ctx.closePath();
+  ctx.fillStyle='rgba(218,216,210,0.4)'; ctx.fill();
+  ctx.strokeStyle='#d0ccc4'; ctx.lineWidth=1; ctx.setLineDash([5,5]);
+  ctx.beginPath(); ctx.moveTo(camRX,midY); ctx.lineTo(panW,midY-fov);
+  ctx.moveTo(camRX,midY); ctx.lineTo(panW,midY+fov);
+  ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+
+  // Centerline
+  ctx.strokeStyle='#dcd8d0'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(camRX,midY); ctx.lineTo(panW-4,midY); ctx.stroke();
+
+  // Sharp zone
+  ctx.save();
+  ctx.beginPath(); ctx.rect(camRX,startY+18,panW-camRX,panH-24); ctx.clip();
+  ctx.fillStyle='rgba(47,74,63,0.09)'; ctx.fillRect(zL,startY+18,zR-zL,panH-24);
+  ctx.strokeStyle='rgba(47,74,63,0.38)'; ctx.lineWidth=1.5; ctx.setLineDash([4,5]);
+  ctx.beginPath();
+  if(zL>camRX+3){ctx.moveTo(zL,startY+20);ctx.lineTo(zL,startY+panH-6);}
+  ctx.moveTo(zR,startY+20); ctx.lineTo(zR,startY+panH-6);
+  ctx.stroke(); ctx.setLineDash([]);
+  if(zR-zL>28){
+    ctx.font='9px IBM Plex Mono,monospace'; ctx.textAlign='center';
+    ctx.fillStyle='rgba(47,74,63,0.45)';
+    ctx.fillText('in focus',(zL+zR)/2,startY+panH-7);
+  }
+  ctx.restore();
+
+  // Objects
+  objs.forEach(function(o){
+    var x=dToX(o.d), isSub=o.d===0, blur=calcBlur(o.d,t), inZ=blur<THRESH;
+    if(!inZ){
+      var rings=Math.ceil(blur/4);
+      for(var ri=rings;ri>=1;ri--){
+        ctx.beginPath(); ctx.arc(x,midY,7+ri*5,0,Math.PI*2);
+        ctx.strokeStyle='rgba(180,172,160,'+(0.08+(rings-ri)*0.04)+')';
+        ctx.lineWidth=1.5; ctx.stroke();
+      }
+    }
+    ctx.beginPath(); ctx.arc(x,midY,isSub?7:5.5,0,Math.PI*2);
+    ctx.fillStyle=isSub?'#2F4A3F':(inZ?'#5a8870':'#bab6ae'); ctx.fill();
+    if(isSub){
+      ctx.strokeStyle='rgba(47,74,63,0.42)'; ctx.lineWidth=1.5; ctx.setLineDash([3,4]);
+      ctx.beginPath(); ctx.moveTo(x,startY+20); ctx.lineTo(x,midY-10);
+      ctx.moveTo(x,midY+10); ctx.lineTo(x,startY+panH-18);
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+    if(o.lbl){
+      ctx.font=(isSub?'600':'400')+' 10px IBM Plex Mono,monospace'; ctx.textAlign='center';
+      ctx.fillStyle=isSub?'#2F4A3F':(inZ?'#5a8870':'#aaa098');
+      ctx.fillText(o.lbl,x,midY+(isSub?7:5.5)+12);
+    }
+  });
+
+  // f-stop label
+  ctx.font='600 11px IBM Plex Mono,monospace'; ctx.fillStyle='rgba(47,74,63,0.72)'; ctx.textAlign='right';
+  ctx.fillText(AP[apI],panW-10,startY+14);
+
+  // Camera body
+  var bW=32,bH=20,bX=camRX-bW,bY=midY-bH/2;
+  ctx.fillStyle='#2F4A3F'; rr(ctx,bX,bY,bW,bH,3); ctx.fill();
+  ctx.fillStyle='#3d5e51'; rr(ctx,bX+6,bY-5,12,6,2); ctx.fill();
+  ctx.fillStyle='#1a2a24'; ctx.beginPath(); ctx.arc(camRX,midY,7,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#08100a'; ctx.beginPath(); ctx.arc(camRX,midY,3.5,0,Math.PI*2); ctx.fill();
+  ctx.font='9px IBM Plex Mono,monospace'; ctx.textAlign='center';
+  ctx.fillStyle='rgba(47,74,63,0.55)'; ctx.fillText('Camera',bX+bW/2,midY+bH/2+11);
+}
+
+// ── APERTURE IRIS ─────────────────────────────────────────────────
+var apCv=document.getElementById('apCanvas'),apCtx=apCv.getContext('2d');
+function drawAp(idx){
+  var W=68,cx=34,cy=34; apCtx.clearRect(0,0,W,W);
+  var bg=apCtx.createRadialGradient(24,20,3,cx,cy,34);
+  bg.addColorStop(0,'#2e3d52'); bg.addColorStop(.5,'#1a2535'); bg.addColorStop(1,'#0c1018');
+  apCtx.beginPath(); apCtx.arc(cx,cy,34,0,Math.PI*2); apCtx.fillStyle=bg; apCtx.fill();
+  var openR=28-(idx/8)*24,numB=7,outerR=32,ov=0.28;
+  apCtx.save(); apCtx.beginPath(); apCtx.arc(cx,cy,33,0,Math.PI*2); apCtx.clip();
+  for(var i=0;i<numB;i++){
+    var a0=(i/numB)*Math.PI*2,a1=((i+1)/numB)*Math.PI*2,am=(a0+a1)/2,ir=openR+1.5;
+    apCtx.beginPath();
+    apCtx.moveTo(cx+ir*Math.cos(a0-ov),cy+ir*Math.sin(a0-ov));
+    apCtx.lineTo(cx+outerR*Math.cos(a0-ov*.3),cy+outerR*Math.sin(a0-ov*.3));
+    apCtx.lineTo(cx+outerR*Math.cos(a1+ov*.3),cy+outerR*Math.sin(a1+ov*.3));
+    apCtx.lineTo(cx+ir*Math.cos(a1+ov),cy+ir*Math.sin(a1+ov));
+    apCtx.quadraticCurveTo(cx+(ir-4)*Math.cos(am),cy+(ir-4)*Math.sin(am),cx+ir*Math.cos(a0-ov),cy+ir*Math.sin(a0-ov));
+    apCtx.closePath();
+    var bg2=apCtx.createLinearGradient(cx+outerR*Math.cos(am),cy+outerR*Math.sin(am),cx,cy);
+    bg2.addColorStop(0,i%2===0?'#3a4a5e':'#48586e'); bg2.addColorStop(1,i%2===0?'#1e2a3a':'#283240');
+    apCtx.fillStyle=bg2; apCtx.fill();
+    apCtx.strokeStyle='rgba(140,180,220,.35)'; apCtx.lineWidth=.7; apCtx.stroke();
+  }
+  apCtx.restore();
+  var g=1-(idx/8);
+  var og=apCtx.createRadialGradient(cx-openR*.28,cy-openR*.28,0,cx,cy,openR);
+  og.addColorStop(0,'rgba('+(Math.round(190+g*55))+','+(Math.round(210+g*35))+','+(Math.round(230+g*15))+','+(0.45+g*.45)+')');
+  og.addColorStop(.55,'rgba('+(Math.round(90+g*70))+','+(Math.round(120+g*70))+','+(Math.round(170+g*50))+','+(0.55+g*.3)+')');
+  og.addColorStop(1,'rgba(6,10,18,1)');
+  apCtx.beginPath(); apCtx.arc(cx,cy,openR,0,Math.PI*2); apCtx.fillStyle=og; apCtx.fill();
+  apCtx.beginPath(); apCtx.arc(cx,cy,33,0,Math.PI*2);
+  apCtx.strokeStyle='rgba(120,160,200,.3)'; apCtx.lineWidth=1.5; apCtx.stroke();
+  document.getElementById('apFstop').textContent=AP[idx];
+}
+
+// ── TRIANGLE UPDATE ───────────────────────────────────────────────
+function updateTriangle(ev){
+  var APv={x:190,y:16},SHv={x:16,y:276},ISOv={x:364,y:276};
+  var apT=1-(apI/8),shT=1-(shI/8),isoT=isoI/8;
+  var minW=1.5,maxW=9;
+  function setLine(id,val){
+    document.getElementById(id).setAttribute('stroke-width',(minW+val*(maxW-minW)).toFixed(1));
+    document.getElementById(id).setAttribute('opacity',(0.22+val*0.78).toFixed(2));
+  }
+  setLine('tlAp',apT); setLine('tlSh',shT); setLine('tlIso',isoT);
+
+  function setMarker(id,a,b,v){
+    var m=document.getElementById(id);
+    m.setAttribute('cx',(a.x+(1-v)*(b.x-a.x)).toFixed(1));
+    m.setAttribute('cy',(a.y+(1-v)*(b.y-a.y)).toFixed(1));
+  }
+  setMarker('mkAp',APv,SHv,apT); setMarker('mkSh',SHv,ISOv,shT); setMarker('mkIso',ISOv,APv,isoT);
+
+  document.getElementById('nvAp').textContent  = AP[apI];
+  document.getElementById('nvSh').textContent  = SH[shI].replace('s','');
+  document.getElementById('nvIso').textContent = ISO[isoI]>=1000?(ISO[isoI]/1000).toFixed(0)+'k':ISO[isoI];
+  document.getElementById('evLbl').textContent = ev===0?'EV 0':ev>0?'EV +'+ev:'EV '+ev;
+
+  var cen=document.getElementById('cen'),evL=document.getElementById('evLbl');
+  if(ev===0){
+    cen.setAttribute('stroke','#2F4A3F');
+    cen.setAttribute('stroke-width','2');
+    cen.setAttribute('fill','rgba(47,74,63,0.07)');
+    cen.classList.add('cen-ok');
+    evL.setAttribute('fill','#2F4A3F');
+  } else {
+    cen.classList.remove('cen-ok');
+    var it=Math.min(Math.abs(ev)/4,1);
+    var dc=ev>0?'rgba(140,50,10,':'rgba(20,60,140,';
+    cen.setAttribute('stroke',dc+(0.4+it*0.5)+')');
+    cen.setAttribute('stroke-width',(1.5+it*4).toFixed(1));
+    cen.setAttribute('fill',dc+(0.04+it*0.08)+')');
+    evL.setAttribute('fill',ev>0?'#8B3000':'#1e3c8a');
+  }
+}
+
+// ── MODE ──────────────────────────────────────────────────────────
+var HINTS={
+  av:'<strong>Aperture Priority (Av)</strong> — You set aperture. Camera meters shutter speed. ISO 400 baseline.',
+  tv:'<strong>Shutter Priority (Tv)</strong> — You set shutter speed. Camera meters aperture. ISO 400 baseline.',
+  iso:'<strong>ISO Priority</strong> — You set ISO. Camera meters aperture and shutter.'
+};
+function setMode(m){
+  mode=m;
+  ['Manual','Av','Tv','Iso'].forEach(function(k){document.getElementById('b'+k).classList.toggle('active',k.toLowerCase()===m||(m==='manual'&&k==='Manual'));});
+  var hb=document.getElementById('hint');
+  if(m==='manual'){hb.className='hint';hb.innerHTML='';}else{hb.className='hint show';hb.innerHTML=HINTS[m];}
+  lk('Ap',m!=='manual'&&m!=='av'); lk('Sh',m!=='manual'&&m!=='tv'); lk('Iso',m!=='manual'&&m!=='iso');
+  update();
+}
+function lk(k,on){
+  var sl={Ap:apSl,Sh:shSl,Iso:isoSl}[k],lo=document.getElementById('lock'+k),bd=document.getElementById('bdg'+k);
+  if(on){sl.classList.add('locked');lo.classList.add('show');bd.classList.add('show');}
+  else{sl.classList.remove('locked');lo.classList.remove('show');bd.classList.remove('show');}
+}
+function compensate(){
+  if(mode==='av'){var i2=2,s=clamp(Math.round(4-(0-apEV(apI)-isoEV(i2))),0,8);shI=s;isoI=i2;shSl.value=s;isoSl.value=i2;}
+  else if(mode==='tv'){var i3=2,a=clamp(Math.round(4-(0-shEV(shI)-isoEV(i3))),0,8);apI=a;isoI=i3;apSl.value=a;isoSl.value=i3;}
+  else if(mode==='iso'){var a4=4,s4=clamp(Math.round(4-(0-apEV(a4)-isoEV(isoI))),0,8);apI=a4;shI=s4;apSl.value=a4;shSl.value=s4;}
+}
+function pill(id,on){var e=document.getElementById(id);if(e){if(on)e.classList.add('on');else e.classList.remove('on');}}
+function setBg(el,p){el.style.setProperty('--p',p+'%');}
+
+// ── UPDATE ────────────────────────────────────────────────────────
+function update(){
+  if(mode==='manual'){apI=+apSl.value;shI=+shSl.value;isoI=+isoSl.value;}
+  else{if(mode==='av')apI=+apSl.value;if(mode==='tv')shI=+shSl.value;if(mode==='iso')isoI=+isoSl.value;compensate();}
+  setBg(apSl,(apI/8)*100); setBg(shSl,(shI/8)*100); setBg(isoSl,(isoI/8)*100);
+  document.getElementById('apVal').textContent='f/'+AP[apI].replace('f/','');
+  document.getElementById('shVal').textContent=SH[shI];
+  document.getElementById('isoVal').textContent='ISO '+ISO[isoI];
+  var ev=totalEV(apI,shI,isoI);
+  document.getElementById('evDisp').textContent=ev>=0?'EV +'+ev:'EV '+ev;
+  var st=document.getElementById('evSt');
+  if(mode!=='manual'){st.textContent='Metered correctly.';st.style.color='#4A4A4A';}
+  else if(ev>2){st.textContent='Overexposed.';st.style.color='#8B3000';}
+  else if(ev>0){st.textContent='+'+ev+' stop.';st.style.color='#8B3000';}
+  else if(ev===0){st.textContent='Correct Exposure.';st.style.color='#2F4A3F';}
+  else if(ev>=-2){st.textContent=ev+' stop.';st.style.color='#4A4A4A';}
+  else{st.textContent='Underexposed.';st.style.color='#8A8A8A';}
+  document.getElementById('needle').style.left=clamp(50+(ev/8)*40,5,95)+'%';
+  pill('pApBrt',apI<=2);pill('pApDrk',apI>=6);pill('pApShw',apI<=3);pill('pApDp',apI>=5);
+  pill('pShBrt',shI<=2);pill('pShDrk',shI>=6);pill('pShFrz',shI>=5);pill('pShBlr',shI<=2);
+  pill('pIsoBrt',isoI>=5);pill('pIsoDrk',isoI<=1);pill('pIsoCln',isoI<=2);pill('pIsoNsy',isoI>=5);
+  document.getElementById('tcApF').style.width=((8-apI)/8*100)+'%';
+  document.getElementById('tcShF').style.width=((8-shI)/8*100)+'%';
+  document.getElementById('tcIsoF').style.width=(isoI/8*100)+'%';
+  document.getElementById('tcApV').textContent=AP[apI];
+  document.getElementById('tcShV').textContent=SH[shI];
+  document.getElementById('tcIsoV').textContent='ISO '+ISO[isoI];
+  document.getElementById('tcApN').textContent=DOF_N[apI];
+  document.getElementById('tcShN').textContent=SH_N[shI];
+  document.getElementById('tcIsoN').textContent=ISO_N[isoI];
+  drawAp(apI); draw(); updateTriangle(ev);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+apSl.addEventListener('input',update);
+shSl.addEventListener('input',update);
+isoSl.addEventListener('input',update);
+if(typeof ResizeObserver!=='undefined'){new ResizeObserver(resize).observe(cv.parentElement);}
+else{window.addEventListener('resize',resize);}
+resize(); update();
+</script>
+</body>
+</html>

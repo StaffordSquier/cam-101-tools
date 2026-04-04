@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAM-04c — ISO &amp; Grain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F2EE;--surface:#FFFFFF;--text:#121212;--text-2:#4A4A4A;--div:#E2E0DA;--accent:#2F4A3F;--accent-dim:#3d5e51;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;font-family:var(--sans);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
+header{height:52px;background:var(--surface);border-bottom:1px solid var(--div);display:flex;align-items:center;padding:0 24px;gap:16px;flex-shrink:0;}
+header h1{font-size:18px;font-weight:600;letter-spacing:-.3px;margin:0;}
+.sub{font-family:var(--mono);font-size:12px;color:var(--text-2);flex:1;}
+.hdr-val{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--accent);}
+.body{display:flex;flex-direction:column;height:calc(100% - 52px);}
+.viz{flex:1;min-height:0;position:relative;}
+canvas{position:absolute;top:0;left:0;width:100%;height:100%;display:block;}
+.strip{background:var(--surface);border-top:1px solid var(--div);padding:14px 24px 16px;flex-shrink:0;}
+.sl-row{display:flex;align-items:center;gap:16px;margin-bottom:10px;}
+.sl-lbl{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);white-space:nowrap;}
+.sl-val{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--accent);white-space:nowrap;min-width:110px;}
+.sl-wrap{flex:1;max-width:520px;}
+.sl-ends{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:4px;}
+input[type=range]{width:100%;-webkit-appearance:none;height:3px;border-radius:2px;outline:none;cursor:pointer;background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--div) var(--p,50%));}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--surface);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:transform .1s;}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15);}
+.sl-desc{font-size:13px;color:var(--text-2);line-height:1.4;flex:1;}
+.pills{display:flex;gap:6px;flex-wrap:wrap;}
+.pill{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:2px;background:transparent;border:1px solid var(--div);color:var(--text-2);opacity:.45;transition:all .15s;}
+.pill.on{opacity:1;background:rgba(47,74,63,.08);border-color:var(--accent);color:var(--accent);}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--div);border-radius:3px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>ISO &amp; Grain</h1>
+  <span class="sub">CAM-04c &nbsp;·&nbsp; Week 1</span>
+  <span class="hdr-val" id="hdrVal">ISO 400</span>
+</header>
+<div class="body">
+  <div class="viz"><canvas id="cv"></canvas></div>
+  <div class="strip">
+    <div class="sl-row">
+      <span class="sl-lbl">ISO</span>
+      <span class="sl-val" id="sVal">ISO 400</span>
+      <div class="sl-wrap">
+        <input type="range" id="sl" min="0" max="8" step="1" value="2">
+        <div class="sl-ends"><span>ISO 100 — clean / less sensitive</span><span>ISO 25600 — extreme grain</span></div>
+      </div>
+      <span class="sl-desc" id="sDesc">Low noise. Most outdoor conditions.</span>
+    </div>
+    <div class="pills">
+      <span class="pill" id="pCln">Clean Image</span>
+      <span class="pill" id="pNsy">Visible Grain</span>
+      <span class="pill" id="pLow">Low Light Capable</span>
+      <span class="pill" id="pBrt">Bright Light Needed</span>
+      <span class="pill" id="pCrs">Course Standard</span>
+    </div>
+  </div>
+</div>
+<script>
+'use strict';
+var ISO=[100,200,400,800,1600,3200,6400,12800,25600];
+var QUAL=['Pristine','Very Clean','Clean','Fine Grain','Moderate Grain','Heavy Grain','Strong Noise','Severe Noise','Extreme Noise'];
+var DESC=[
+  'ISO 100. Cleanest possible image. Every photon is counted carefully. Requires bright light — full sun or studio strobes.',
+  'ISO 200. Very clean. Good for bright daylight and most outdoor conditions with light overcast.',
+  'ISO 400. Our course standard. Works for most outdoor situations, open shade, and some interior light.',
+  'ISO 800. Minor grain visible at large sizes. Cloudy days, late afternoon, open doorways.',
+  'ISO 1600. Noticeable grain. Dim interiors, evening light. You can see it in shadow areas.',
+  'ISO 3200. Significant grain. Dark rooms, stage lighting, available indoor light. Quality is compromised.',
+  'ISO 6400. Heavy grain. Near-dark conditions. The grain becomes part of the picture whether you want it or not.',
+  'ISO 12800. Strong noise. Emergency use. Grain overwhelms fine detail.',
+  'ISO 25600. Extreme noise. Last resort. The image barely resolves through the grain structure.'
+];
+var cv=document.getElementById('cv'),ctx=cv.getContext('2d'),sl=document.getElementById('sl'),idx=2;
+// Seeded random for stable grain pattern per ISO setting
+var grainSeed=0;
+function rand(){grainSeed=(grainSeed*1664525+1013904223)&0xFFFFFFFF;return(grainSeed>>>0)/4294967296;}
+
+function drawFigure(cx,cy,h,alpha){
+  ctx.save();ctx.globalAlpha=alpha;
+  var hw=h*.16,headR=h*.11;
+  ctx.fillStyle='#3a5270';
+  ctx.beginPath();ctx.arc(cx,cy-h+headR,headR,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx-hw,cy-h+headR*2.2);ctx.lineTo(cx+hw,cy-h+headR*2.2);
+  ctx.lineTo(cx+hw*.75,cy-h*.28);ctx.lineTo(cx-hw*.75,cy-h*.28);
+  ctx.closePath();ctx.fill();
+  ctx.lineWidth=hw*1.3;ctx.strokeStyle='#3a5270';ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(cx,cy-h*.28);ctx.lineTo(cx+hw*1.1,cy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,cy-h*.28);ctx.lineTo(cx-hw*1.4,cy);ctx.stroke();
+  ctx.restore();
+}
+
+function drawScene(split,H,isoIdx){
+  // Light dims progressively to show why higher ISO is needed
+  var darken=isoIdx/8*.32;
+  var skyR=Math.round(210-darken*180),skyG=Math.round(205-darken*175),skyB=Math.round(198-darken*165);
+  var gndR=Math.round(186-darken*150),gndG=Math.round(180-darken*145),gndB=Math.round(172-darken*138);
+  ctx.fillStyle='rgb('+skyR+','+skyG+','+skyB+')';ctx.fillRect(0,0,split,H*.46);
+  ctx.fillStyle='rgb('+gndR+','+gndG+','+gndB+')';ctx.fillRect(0,H*.46,split,H*.54);
+  ctx.strokeStyle='rgba(0,0,0,.12)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,H*.46);ctx.lineTo(split,H*.46);ctx.stroke();
+  // Buildings
+  var bldR=Math.round(200-darken*165),bldG=Math.round(195-darken*160),bldB=Math.round(187-darken*152);
+  ctx.fillStyle='rgb('+bldR+','+bldG+','+bldB+')';
+  ctx.fillRect(split*.04,H*.16,split*.07,H*.30);
+  ctx.fillRect(split*.13,H*.26,split*.09,H*.20);
+  ctx.fillRect(split*.75,H*.20,split*.08,H*.26);
+  ctx.fillRect(split*.85,H*.28,split*.10,H*.18);
+  // Windows — glow at high ISO (suggesting indoor/nighttime)
+  var winAlpha=.12+isoIdx*.06;
+  ctx.fillStyle='rgba(255,240,180,'+winAlpha+')';
+  for(var r=0;r<3;r++){for(var c=0;c<2;c++){ctx.fillRect(split*.055+c*split*.022,H*.22+r*H*.06,split*.012,H*.035);}}
+  ctx.fillStyle='rgba(255,240,180,'+(winAlpha*.8)+')';
+  for(var r2=0;r2<2;r2++){ctx.fillRect(split*.76,H*.25+r2*H*.06,split*.012,H*.033);}
+  // Subject — static figure
+  drawFigure(split*.52,H*.46,H*.3,.9);
+  // Grain overlay on scene
+  if(isoIdx>=2){
+    var ga=(isoIdx-1)/7;
+    grainSeed=isoIdx*7919; // deterministic per ISO setting
+    var grainCount=Math.round(split*H*ga*.014);
+    for(var i=0;i<grainCount;i++){
+      var gx=rand()*split,gy=rand()*H;
+      var bright=rand()>.5?228:18;
+      ctx.globalAlpha=rand()*Math.min(ga*.48,.42);
+      ctx.fillStyle='rgb('+bright+','+bright+','+bright+')';
+      var gr=.35+rand()*.85;
+      ctx.beginPath();ctx.arc(gx,gy,gr,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }
+  // Labels
+  ctx.font='600 10px IBM Plex Mono,monospace';ctx.fillStyle='rgba(255,255,255,.45)';ctx.textAlign='left';
+  ctx.fillText('SCENE',14,17);
+  ctx.font='600 14px IBM Plex Mono,monospace';ctx.fillStyle='rgba(255,255,255,.65)';ctx.textAlign='right';
+  ctx.fillText('ISO '+ISO[isoIdx],split-14,17);
+}
+
+function drawGrainSwatch(sx,sy,pw,ph,isoIdx){
+  // White panel background
+  ctx.fillStyle='#FFFFFF';ctx.fillRect(sx,sy,pw,ph);
+  // Left border divider
+  ctx.strokeStyle='#E2E0DA';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx,sy+ph);ctx.stroke();
+  // Label
+  ctx.font='600 10px IBM Plex Mono,monospace';ctx.fillStyle='#aaa89e';ctx.textAlign='left';
+  ctx.fillText('GRAIN — 100% CROP',sx+14,sy+17);
+  // Swatch box
+  var margin=20,swX=sx+margin,swY=sy+34,swW=pw-margin*2,swH=ph-34-margin-44;
+  // Mid-tone fill (represents a mid-tone area of the photo)
+  var tone=Math.round(185-isoIdx*8);
+  ctx.fillStyle='rgb('+tone+','+tone+','+tone+')';
+  ctx.fillRect(swX,swY,swW,swH);
+  ctx.strokeStyle='#E2E0DA';ctx.lineWidth=1;ctx.strokeRect(swX,swY,swW,swH);
+  // Grain in swatch — dense to show texture clearly
+  if(isoIdx>=1){
+    var ga2=Math.max(0,(isoIdx-.5)/7.5);
+    grainSeed=(isoIdx+1)*3571; // separate seed from scene grain
+    var swGrainCount=Math.round(swW*swH*ga2*.18);
+    for(var i=0;i<swGrainCount;i++){
+      var gx2=swX+rand()*swW,gy2=swY+rand()*swH;
+      var bright2=rand()>.5?235:12;
+      ctx.globalAlpha=rand()*Math.min(ga2*.75,.68);
+      ctx.fillStyle='rgb('+bright2+','+bright2+','+bright2+')';
+      var gr2=.4+rand()*Math.min(1.8,.6+ga2*2.2);
+      ctx.beginPath();ctx.arc(gx2,gy2,gr2,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }
+  // ISO value below swatch
+  ctx.font='500 15px IBM Plex Mono,monospace';ctx.fillStyle='#2F4A3F';ctx.textAlign='center';
+  ctx.fillText('ISO '+ISO[isoIdx],sx+pw/2,swY+swH+20);
+  // Quality label
+  ctx.font='11px IBM Plex Mono,monospace';ctx.fillStyle='#8a8a8a';
+  ctx.fillText(QUAL[isoIdx],sx+pw/2,swY+swH+36);
+}
+
+function draw(){
+  var W=cv.width,H=cv.height;ctx.clearRect(0,0,W,H);
+  var split=Math.round(W*.65);
+  drawScene(split,H,idx);
+  drawGrainSwatch(split,0,W-split,H,idx);
+}
+
+function pill(id,on){var e=document.getElementById(id);if(on)e.classList.add('on');else e.classList.remove('on');}
+function update(){
+  idx=+sl.value;sl.style.setProperty('--p',(idx/8*100)+'%');
+  document.getElementById('hdrVal').textContent='ISO '+ISO[idx];
+  document.getElementById('sVal').textContent='ISO '+ISO[idx];
+  document.getElementById('sDesc').textContent=DESC[idx];
+  pill('pCln',idx<=2);pill('pNsy',idx>=4);
+  pill('pLow',idx>=4);pill('pBrt',idx<=1);
+  pill('pCrs',idx===2);
+  draw();
+}
+function resize(){var p=cv.parentElement;cv.width=p.offsetWidth;cv.height=p.offsetHeight;draw();}
+sl.addEventListener('input',update);
+if(typeof ResizeObserver!=='undefined'){new ResizeObserver(resize).observe(cv.parentElement);}
+else{window.addEventListener('resize',resize);}
+resize();update();
+</script>
+</body>
+</html>
