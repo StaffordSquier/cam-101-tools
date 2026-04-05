@@ -51,15 +51,11 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 /* ── BODY ── */
 .body { flex: 1; display: flex; flex-direction: row; min-height: 0; overflow: hidden; }
 
-/* ── SHEET PANEL — left, scrolls vertically ── */
+/* ── SHEET PANEL ── */
 .sheet-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
-  border-right: 1px solid var(--div);
-  overflow-y: auto;  /* panel scrolls, not the dark box */
-  padding: 16px;
+  flex: 1; display: flex; flex-direction: column;
+  background: var(--bg); border-right: 1px solid var(--div);
+  overflow-y: auto; padding: 16px;
 }
 .sheet-lbl {
   font-family: var(--mono); font-size: 10px; font-weight: 600;
@@ -67,41 +63,36 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
   color: var(--text-2); margin-bottom: 10px; flex-shrink: 0;
 }
 
-/* Film strip container — only as tall as its content */
+/* THE FIX: no dark background here — dark only lives on .frames-row */
 .contact-sheet {
-  flex: 0 0 auto;  /* KEY FIX: don't stretch to fill space */
-  background: #181510;
-  border-radius: 4px;
-  border: 1px solid var(--div);
-  padding: 12px 10px;
-  display: flex; flex-direction: column; gap: 4px;
+  flex: 0 0 auto;
+  background: transparent;
+  padding: 0;
+  display: flex; flex-direction: column; gap: 6px;
 }
 
-/* Film strip row */
+/* Film strip row — this is where the dark lives */
 .strip { display: flex; align-items: stretch; gap: 0; }
 .strip-nums {
   width: 20px; flex-shrink: 0;
   display: flex; flex-direction: column;
   justify-content: space-around; padding: 4px 0;
 }
-.frame-num {
-  font-family: var(--mono); font-size: 7px;
-  color: #4a4030; text-align: center; line-height: 1;
-}
+.frame-num { font-family: var(--mono); font-size: 7px; color: #7a7060; text-align: center; line-height: 1; }
 .frames-row {
   flex: 1; display: flex; gap: 2px;
   background: #0a0806;
   padding: 5px 4px;
-  border-top: 3px solid #0a0806;
-  border-bottom: 3px solid #0a0806;
+  border-top: 4px solid #0a0806;
+  border-bottom: 4px solid #0a0806;
+  border-radius: 2px;
 }
 
 /* Individual frame */
 .frame {
   position: relative; cursor: pointer;
   flex: 1; aspect-ratio: 3/2;
-  border: 1px solid #0a0806; overflow: hidden;
-  transition: transform .1s;
+  border: 1px solid #0a0806; overflow: hidden; transition: transform .1s;
 }
 .frame:hover { transform: scale(1.05); z-index: 2; }
 .frame.selected { box-shadow: 0 0 0 2px var(--accent); z-index: 3; }
@@ -120,18 +111,15 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 .mark.reject { background: var(--danger); color: #fff; }
 .mark.maybe  { background: var(--warn);   color: #fff; }
 
-/* ── SIDEBAR — right, scrolls ── */
+/* ── SIDEBAR ── */
 .sidebar {
-  width: 280px; flex-shrink: 0;
-  background: var(--surface);
-  display: flex; flex-direction: column;
-  overflow-y: auto;
+  width: 280px; flex-shrink: 0; background: var(--surface);
+  display: flex; flex-direction: column; overflow-y: auto;
 }
 .loupe-wrap { padding: 14px 16px; border-bottom: 1px solid var(--div); flex-shrink: 0; }
 .section-lbl {
   font-family: var(--mono); font-size: 10px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .06em;
-  color: var(--text-2); margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); margin-bottom: 8px;
 }
 .loupe-canvas-wrap {
   width: 100%; aspect-ratio: 3/2;
@@ -156,8 +144,7 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 .abtn {
   flex: 1; height: 36px; border-radius: 3px; cursor: pointer;
   font-family: var(--mono); font-size: 11px; font-weight: 600;
-  border: 1px solid var(--div); background: transparent; color: var(--text-2);
-  transition: all .15s;
+  border: 1px solid var(--div); background: transparent; color: var(--text-2); transition: all .15s;
 }
 .abtn:disabled { opacity: .3; cursor: default; }
 .abtn.print  { border-color: var(--accent); color: var(--accent); }
@@ -176,8 +163,7 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 .reset-btn {
   width: 100%; height: 34px; border-radius: 3px; cursor: pointer;
   font-family: var(--sans); font-size: 12px; font-weight: 500;
-  border: 1px solid var(--div); background: transparent; color: var(--text-2);
-  transition: all .15s;
+  border: 1px solid var(--div); background: transparent; color: var(--text-2); transition: all .15s;
 }
 .reset-btn:hover { border-color: #999; color: var(--text); }
 
@@ -212,10 +198,7 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
   .abtn { height: 44px; font-size: 12px; }
   .mark { width: 16px; height: 16px; font-size: 9px; }
 }
-@media (min-width: 641px) and (max-width: 900px) {
-  .sidebar { width: 240px; }
-}
-
+@media (min-width: 641px) and (max-width: 900px) { .sidebar { width: 240px; } }
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-thumb { background: var(--div); border-radius: 3px; }
 </style>
@@ -254,14 +237,14 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
     <div class="assess-wrap">
       <div class="section-lbl" style="margin-bottom:10px;">Your Assessment</div>
       <div class="btn-row">
-        <button class="abtn print"  id="btnPrint"  onclick="markFrame('print')"  disabled>✓ Print</button>
+        <button class="abtn print"  id="btnPrint"  onclick="markFrame('print')"  disabled>&#10003; Print</button>
         <button class="abtn maybe"  id="btnMaybe"  onclick="markFrame('maybe')"  disabled>? Maybe</button>
-        <button class="abtn reject" id="btnReject" onclick="markFrame('reject')" disabled>✕ Reject</button>
+        <button class="abtn reject" id="btnReject" onclick="markFrame('reject')" disabled>&#10005; Reject</button>
       </div>
     </div>
     <div class="score-wrap">
       <div class="section-lbl" style="margin-bottom:10px;">Score</div>
-      <div class="score-row"><span class="score-name">Correct</span><span class="score-val" id="scoreCorrect">—</span></div>
+      <div class="score-row"><span class="score-name">Correct</span><span class="score-val" id="scoreCorrect">&#8212;</span></div>
       <div class="score-bar"><div class="score-fill" id="scoreFill" style="width:0%"></div></div>
       <div class="score-row"><span class="score-name">Marked</span><span class="score-val" id="scoreMarked">0 / 24</span></div>
       <button class="reset-btn" onclick="resetAll()">Reset Sheet</button>
@@ -271,15 +254,15 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-canvas-wrap"><canvas id="modalCanvas"></canvas></div>
   <div class="modal-card">
-    <div class="modal-row"><span class="modal-lbl">Frame</span><span class="modal-val" id="modalFrame">—</span></div>
-    <div class="modal-row"><span class="modal-lbl">Exposure</span><span class="modal-val" id="modalExp">—</span></div>
-    <div class="modal-row"><span class="modal-lbl">Focus</span><span class="modal-val" id="modalFocus">—</span></div>
+    <div class="modal-row"><span class="modal-lbl">Frame</span><span class="modal-val" id="modalFrame">&#8212;</span></div>
+    <div class="modal-row"><span class="modal-lbl">Exposure</span><span class="modal-val" id="modalExp">&#8212;</span></div>
+    <div class="modal-row"><span class="modal-lbl">Focus</span><span class="modal-val" id="modalFocus">&#8212;</span></div>
     <div class="modal-diag" id="modalDiag">Mark this frame to see the diagnosis.</div>
   </div>
   <div class="modal-btns">
-    <button class="abtn print"  id="mbtnPrint"  onclick="markFrameModal('print')">✓ Print</button>
+    <button class="abtn print"  id="mbtnPrint"  onclick="markFrameModal('print')">&#10003; Print</button>
     <button class="abtn maybe"  id="mbtnMaybe"  onclick="markFrameModal('maybe')">? Maybe</button>
-    <button class="abtn reject" id="mbtnReject" onclick="markFrameModal('reject')">✕ Reject</button>
+    <button class="abtn reject" id="mbtnReject" onclick="markFrameModal('reject')">&#10005; Reject</button>
   </div>
   <button class="modal-close" onclick="closeModal()">Close</button>
 </div>
@@ -395,7 +378,7 @@ function openModal(idx){
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open');modalSelected=null;}
 function markFrameModal(type){
   if(modalSelected===null)return;marks[modalSelected]=type;
-  var el=document.getElementById('mark-'+modalSelected);el.className='mark visible '+type;el.textContent=type==='print'?'✓':type==='maybe'?'?':'✕';
+  var el=document.getElementById('mark-'+modalSelected);el.className='mark visible '+type;el.textContent=type==='print'?'\u2713':type==='maybe'?'?':'\u2715';
   document.getElementById('modalDiag').textContent=FRAMES[modalSelected].diag;
   ['mbtnPrint','mbtnMaybe','mbtnReject'].forEach(function(id){document.getElementById(id).classList.remove('active');});
   document.getElementById(type==='print'?'mbtnPrint':type==='maybe'?'mbtnMaybe':'mbtnReject').classList.add('active');
@@ -410,16 +393,16 @@ function selectFrame(idx){
   document.getElementById('loupeEmpty').style.display='none';document.getElementById('frameInfo').style.display='';
   document.getElementById('fiFrame').textContent=idx+1;document.getElementById('fiExp').textContent=expLabel(frame.exp);document.getElementById('fiFocus').textContent=focusLabel(frame.focus);
   var marked=marks[idx];
-  document.getElementById('fiPrint').textContent=marked?(frame.correct==='print'?'Yes':frame.correct==='maybe'?'Possibly':'No'):'—';
+  document.getElementById('fiPrint').textContent=marked?(frame.correct==='print'?'Yes':frame.correct==='maybe'?'Possibly':'No'):'\u2014';
   var diagEl=document.getElementById('fiDiag');diagEl.textContent=marked?frame.diag:'Mark this frame to see the diagnosis.';diagEl.className=marked?'fi-diag revealed':'fi-diag';
   ['btnPrint','btnMaybe','btnReject'].forEach(function(id){var b=document.getElementById(id);b.disabled=false;b.classList.remove('active');});
   if(marked){document.getElementById(marked==='print'?'btnPrint':marked==='maybe'?'btnMaybe':'btnReject').classList.add('active');}
 }
-function expLabel(e){return e===0?'Correct':e===-1?'−1 stop (under)':e===-2?'−2 stops (under)':e===1?'+1 stop (over)':'+2 stops (over)';}
+function expLabel(e){return e===0?'Correct':e===-1?'\u22121 stop (under)':e===-2?'\u22122 stops (under)':e===1?'+1 stop (over)':'+2 stops (over)';}
 function focusLabel(f){return f==='sharp'?'Sharp':f==='soft'?'Slightly soft':'Motion blur';}
 function markFrame(type){
   if(selected===null)return;marks[selected]=type;
-  var el=document.getElementById('mark-'+selected);el.className='mark visible '+type;el.textContent=type==='print'?'✓':type==='maybe'?'?':'✕';
+  var el=document.getElementById('mark-'+selected);el.className='mark visible '+type;el.textContent=type==='print'?'\u2713':type==='maybe'?'?':'\u2715';
   var frame=FRAMES[selected];
   document.getElementById('fiPrint').textContent=frame.correct==='print'?'Yes':frame.correct==='maybe'?'Possibly':'No';
   var diagEl=document.getElementById('fiDiag');diagEl.textContent=frame.diag;diagEl.className='fi-diag revealed';
@@ -431,7 +414,7 @@ function updateScore(){
   var total=FRAMES.length,marked=Object.keys(marks).length,correct=0;
   Object.keys(marks).forEach(function(i){if(marks[i]===FRAMES[i].correct)correct++;});
   document.getElementById('scoreMarked').textContent=marked+' / '+total;
-  document.getElementById('scoreCorrect').textContent=marked>0?correct+' / '+marked:'—';
+  document.getElementById('scoreCorrect').textContent=marked>0?correct+' / '+marked:'\u2014';
   document.getElementById('scoreFill').style.width=(marked>0?Math.round(correct/marked*100):0)+'%';
 }
 function resetAll(){
