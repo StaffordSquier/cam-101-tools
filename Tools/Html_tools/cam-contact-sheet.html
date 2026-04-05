@@ -294,32 +294,50 @@ function buildTable(){
     strip.appendChild(numCol);strip.appendChild(row);lt.appendChild(strip);
   }
 }
-function selectFrame(idx){
-  if(selected!==null){var prev=document.querySelector('.frame[data-idx="'+selected+'"]');if(prev)prev.classList.remove('selected');}
-  selected=idx;var el=document.querySelector('.frame[data-idx="'+idx+'"]');if(el)el.classList.add('selected');
-  var frame=FRAMES[idx];
-  var lc=document.getElementById('loupeCanvas'),lw=lc.parentElement.offsetWidth,lh=Math.round(lw*2/3);
-  lc.width=lw;lc.height=lh;renderFrame(lc,frame);
-  document.getElementById('loupeEmpty').style.display='none';
+function updateFrameInfo(idx){
+  var frame=FRAMES[idx],marked=marks[idx];
   document.getElementById('frameInfo').style.display='';
   document.getElementById('fiFrame').textContent=idx+1;
-  document.getElementById('fiExp').textContent=expLabel(frame.exp);
-  document.getElementById('fiFocus').textContent=focusLabel(frame.focus);
-  var marked=marks[idx];
+  // Answers hidden until marked
+  document.getElementById('fiExp').textContent=marked?expLabel(frame.exp):'\u2014';
+  document.getElementById('fiFocus').textContent=marked?focusLabel(frame.focus):'\u2014';
   document.getElementById('fiPrint').textContent=marked?(frame.correct==='print'?'Yes':frame.correct==='maybe'?'Possibly':'No'):'\u2014';
-  var diagEl=document.getElementById('fiDiag');diagEl.textContent=marked?frame.diag:'Mark this frame to see the diagnosis.';
+  var diagEl=document.getElementById('fiDiag');
+  diagEl.textContent=marked?frame.diag:'Mark this frame to see the diagnosis.';
   diagEl.className=marked?'fi-diag revealed':'fi-diag';
+}
+function selectFrame(idx){
+  if(selected!==null){var prev=document.querySelector('.frame[data-idx="'+selected+'"]');if(prev)prev.classList.remove('selected');}
+  selected=idx;
+  var el=document.querySelector('.frame[data-idx="'+idx+'"]');if(el)el.classList.add('selected');
+  // Update frame info card
+  updateFrameInfo(idx);
+  // Enable assessment buttons, reflect existing mark
   ['btnPrint','btnMaybe','btnReject'].forEach(function(id){var b=document.getElementById(id);b.disabled=false;b.classList.remove('active');});
+  var marked=marks[idx];
   if(marked){document.getElementById(marked==='print'?'btnPrint':marked==='maybe'?'btnMaybe':'btnReject').classList.add('active');}
+  // Render loupe after layout settles
+  requestAnimationFrame(function(){
+    var lc=document.getElementById('loupeCanvas');
+    var lw=lc.parentElement.offsetWidth;
+    var lh=Math.round(lw*2/3);
+    lc.width=lw; lc.height=lh;
+    renderFrame(lc,FRAMES[idx]);
+    document.getElementById('loupeEmpty').style.display='none';
+  });
 }
 function expLabel(e){return e===0?'Correct':e===-1?'\u22121 stop (under)':e===-2?'\u22122 stops (under)':e===1?'+1 stop (over)':'+2 stops (over)';}
 function focusLabel(f){return f==='sharp'?'Sharp':f==='soft'?'Slightly soft':'Motion blur';}
 function markFrame(type){
-  if(selected===null)return;marks[selected]=type;
-  var el=document.getElementById('mark-'+selected);el.className='mark visible '+type;el.textContent=type==='print'?'\u2713':type==='maybe'?'?':'\u2715';
-  var frame=FRAMES[selected];
-  document.getElementById('fiPrint').textContent=frame.correct==='print'?'Yes':frame.correct==='maybe'?'Possibly':'No';
-  var diagEl=document.getElementById('fiDiag');diagEl.textContent=frame.diag;diagEl.className='fi-diag revealed';
+  if(selected===null)return;
+  marks[selected]=type;
+  // Update mark badge on contact sheet
+  var el=document.getElementById('mark-'+selected);
+  el.className='mark visible '+type;
+  el.textContent=type==='print'?'\u2713':type==='maybe'?'?':'\u2715';
+  // Now reveal answers in frame info
+  updateFrameInfo(selected);
+  // Update button active state
   ['btnPrint','btnMaybe','btnReject'].forEach(function(id){document.getElementById(id).classList.remove('active');});
   document.getElementById(type==='print'?'btnPrint':type==='maybe'?'btnMaybe':'btnReject').classList.add('active');
   updateScore();
