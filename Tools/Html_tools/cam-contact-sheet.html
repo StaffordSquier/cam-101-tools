@@ -29,11 +29,7 @@ html, body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
-
-/* Single column — everything stacks */
 .page { max-width: 700px; margin: 0 auto; }
-
-/* ── STICKY HEADER ── */
 header {
   position: sticky; top: 0; z-index: 10;
   background: var(--surface); border-bottom: 1px solid var(--div);
@@ -48,12 +44,9 @@ header h1 { font-size: 15px; font-weight: 600; letter-spacing: -.2px; margin: 0;
 .leg-dot.print  { background: var(--accent); }
 .leg-dot.maybe  { background: var(--warn); }
 .leg-dot.reject { background: var(--danger); }
-
-/* ── STICKY CONTACT SHEET ── */
 .sheet-wrap {
   position: sticky; top: 48px; z-index: 9;
-  background: var(--bg);
-  padding: 10px 12px 8px;
+  background: var(--bg); padding: 10px 12px 8px;
   border-bottom: 2px solid var(--div);
 }
 .sheet-lbl {
@@ -61,37 +54,19 @@ header h1 { font-size: 15px; font-weight: 600; letter-spacing: -.2px; margin: 0;
   text-transform: uppercase; letter-spacing: .06em;
   color: var(--text-2); margin-bottom: 6px;
 }
-
-/* Film strips */
 .contact-sheet { display: flex; flex-direction: column; gap: 3px; }
 .strip { display: flex; align-items: center; }
-.strip-nums {
-  width: 16px; flex-shrink: 0;
-  display: flex; flex-direction: column;
-  justify-content: space-around; gap: 2px;
-}
+.strip-nums { width: 16px; flex-shrink: 0; display: flex; flex-direction: column; justify-content: space-around; gap: 2px; }
 .frame-num { font-family: var(--mono); font-size: 7px; color: var(--dim); text-align: right; padding-right: 2px; line-height: 1; }
-.frames-row {
-  flex: 1; display: flex; gap: 2px;
-  background: #0a0806;
-  padding: 3px;
-  border-radius: 2px;
-}
-
-/* Frames — fixed aspect ratio, never stretch */
+.frames-row { flex: 1; display: flex; gap: 2px; background: #0a0806; padding: 3px; border-radius: 2px; }
 .frame {
-  position: relative; cursor: pointer;
-  flex: 1;
-  aspect-ratio: 3/2;
-  overflow: hidden;
-  border: 1px solid #0a0806;
-  transition: transform .1s;
+  position: relative; cursor: pointer; flex: 1;
+  aspect-ratio: 3/2; overflow: hidden;
+  border: 1px solid #0a0806; transition: transform .1s;
 }
 .frame:hover { transform: scale(1.04); z-index: 2; }
 .frame.selected { box-shadow: 0 0 0 2px var(--accent); z-index: 3; }
 .frame canvas { display: block; width: 100%; height: 100%; }
-
-/* Mark badge */
 .mark {
   position: absolute; top: 2px; right: 2px;
   width: 12px; height: 12px; border-radius: 50%;
@@ -103,19 +78,13 @@ header h1 { font-size: 15px; font-weight: 600; letter-spacing: -.2px; margin: 0;
 .mark.print  { background: var(--accent); color: #fff; }
 .mark.reject { background: var(--danger); color: #fff; }
 .mark.maybe  { background: var(--warn);   color: #fff; }
-
-/* ── CONTROLS — scroll below ── */
 .controls { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
-
 .card { background: var(--surface); border: 1px solid var(--div); border-radius: 4px; padding: 14px; }
-
 .section-lbl {
   font-family: var(--mono); font-size: 10px; font-weight: 600;
   text-transform: uppercase; letter-spacing: .06em;
   color: var(--text-2); margin-bottom: 8px;
 }
-
-/* Loupe */
 .loupe-canvas-wrap {
   width: 100%; aspect-ratio: 3/2;
   background: #0a0806; border: 1px solid var(--div);
@@ -128,15 +97,11 @@ header h1 { font-size: 15px; font-weight: 600; letter-spacing: -.2px; margin: 0;
   font-family: var(--mono); font-size: 11px; color: var(--dim);
   text-align: center; line-height: 1.6;
 }
-
-/* Frame info */
 .fi-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
 .fi-label { font-family: var(--mono); font-size: 10px; color: var(--text-2); }
 .fi-val   { font-family: var(--mono); font-size: 12px; color: var(--text); font-weight: 500; }
 .fi-diag  { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--div); }
 .fi-diag.revealed { color: var(--text); }
-
-/* Assessment buttons */
 .btn-row { display: flex; gap: 8px; }
 .abtn {
   flex: 1; height: 40px; border-radius: 3px; cursor: pointer;
@@ -152,8 +117,6 @@ header h1 { font-size: 15px; font-weight: 600; letter-spacing: -.2px; margin: 0;
 .abtn.maybe.active  { background: var(--warn);   color: #fff; }
 .abtn.reject.active { background: var(--danger);  color: #fff; }
 .abtn:hover:not(:disabled):not(.active) { background: var(--bg); }
-
-/* Score */
 .score-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .score-name { font-size: 13px; color: var(--text-2); }
 .score-val { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--accent); }
@@ -166,12 +129,10 @@ header h1 { font-size: 15px; font-weight: 600; letter-spacing: -.2px; margin: 0;
   transition: all .15s;
 }
 .reset-btn:hover { border-color: #999; color: var(--text); }
-
 @media (max-width: 480px) {
   header h1 { font-size: 13px; }
   .sub { display: none; }
 }
-
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-thumb { background: var(--div); border-radius: 3px; }
 </style>
@@ -204,14 +165,6 @@ header h1 { font-size: 15px; font-weight: 600; letter-spacing: -.2px; margin: 0;
     </div>
   </div>
 
-  <div class="card" id="frameInfo" style="display:none">
-    <div class="fi-row"><span class="fi-label">Frame</span><span class="fi-val" id="fiFrame">&mdash;</span></div>
-    <div class="fi-row"><span class="fi-label">Exposure</span><span class="fi-val" id="fiExp">&mdash;</span></div>
-    <div class="fi-row"><span class="fi-label">Focus</span><span class="fi-val" id="fiFocus">&mdash;</span></div>
-    <div class="fi-row"><span class="fi-label">Printable</span><span class="fi-val" id="fiPrint">&mdash;</span></div>
-    <div class="fi-diag" id="fiDiag">Mark this frame to see the diagnosis.</div>
-  </div>
-
   <div class="card">
     <div class="section-lbl" style="margin-bottom:10px;">Your Assessment</div>
     <div class="btn-row">
@@ -219,6 +172,14 @@ header h1 { font-size: 15px; font-weight: 600; letter-spacing: -.2px; margin: 0;
       <button class="abtn maybe"  id="btnMaybe"  onclick="markFrame('maybe')"  disabled>? Maybe</button>
       <button class="abtn reject" id="btnReject" onclick="markFrame('reject')" disabled>&#10005; Reject</button>
     </div>
+  </div>
+
+  <div class="card" id="frameInfo" style="display:none">
+    <div class="fi-row"><span class="fi-label">Frame</span><span class="fi-val" id="fiFrame">&mdash;</span></div>
+    <div class="fi-row"><span class="fi-label">Exposure</span><span class="fi-val" id="fiExp">&mdash;</span></div>
+    <div class="fi-row"><span class="fi-label">Focus</span><span class="fi-val" id="fiFocus">&mdash;</span></div>
+    <div class="fi-row"><span class="fi-label">Printable</span><span class="fi-val" id="fiPrint">&mdash;</span></div>
+    <div class="fi-diag" id="fiDiag">Mark this frame to see the diagnosis.</div>
   </div>
 
   <div class="card">
@@ -231,7 +192,6 @@ header h1 { font-size: 15px; font-weight: 600; letter-spacing: -.2px; margin: 0;
 
 </div>
 </div>
-
 <script>
 'use strict';
 var FRAMES=[
@@ -260,10 +220,8 @@ var FRAMES=[
   {scene:'landscape',exp:0,  focus:'blur',  correct:'reject', diag:'Correctly exposed but camera shake. The horizon line is doubled. Nothing recoverable.'},
   {scene:'still',    exp:0,  focus:'sharp', correct:'print',  diag:'Good still life negative. Object detail is sharp, shadows open, highlights controlled. Print.'},
 ];
-
 function clampTone(v){return Math.max(0,Math.min(255,Math.round(v)));}
 function gray(t){return 'rgb('+t+','+t+','+t+')';}
-
 function renderFrame(canvas,frame){
   var W=canvas.width,H=canvas.height,ctx=canvas.getContext('2d');
   var shift=frame.exp*0.18,s=function(b){return clampTone(b+shift*255);};
@@ -314,9 +272,7 @@ function renderFrame(canvas,frame){
   for(var gi=0;gi<d.length;gi+=4){var n=(Math.random()-0.5)*grain*255;d[gi]=clampTone(d[gi]+n);d[gi+1]=clampTone(d[gi+1]+n);d[gi+2]=clampTone(d[gi+2]+n);}
   ctx.putImageData(imgData,0,0);
 }
-
 var marks={},selected=null;
-
 function buildTable(){
   var lt=document.getElementById('lightTable');lt.innerHTML='';
   var perStrip=6,numStrips=Math.ceil(FRAMES.length/perStrip);
@@ -338,7 +294,6 @@ function buildTable(){
     strip.appendChild(numCol);strip.appendChild(row);lt.appendChild(strip);
   }
 }
-
 function selectFrame(idx){
   if(selected!==null){var prev=document.querySelector('.frame[data-idx="'+selected+'"]');if(prev)prev.classList.remove('selected');}
   selected=idx;var el=document.querySelector('.frame[data-idx="'+idx+'"]');if(el)el.classList.add('selected');
@@ -357,10 +312,8 @@ function selectFrame(idx){
   ['btnPrint','btnMaybe','btnReject'].forEach(function(id){var b=document.getElementById(id);b.disabled=false;b.classList.remove('active');});
   if(marked){document.getElementById(marked==='print'?'btnPrint':marked==='maybe'?'btnMaybe':'btnReject').classList.add('active');}
 }
-
 function expLabel(e){return e===0?'Correct':e===-1?'\u22121 stop (under)':e===-2?'\u22122 stops (under)':e===1?'+1 stop (over)':'+2 stops (over)';}
 function focusLabel(f){return f==='sharp'?'Sharp':f==='soft'?'Slightly soft':'Motion blur';}
-
 function markFrame(type){
   if(selected===null)return;marks[selected]=type;
   var el=document.getElementById('mark-'+selected);el.className='mark visible '+type;el.textContent=type==='print'?'\u2713':type==='maybe'?'?':'\u2715';
@@ -371,7 +324,6 @@ function markFrame(type){
   document.getElementById(type==='print'?'btnPrint':type==='maybe'?'btnMaybe':'btnReject').classList.add('active');
   updateScore();
 }
-
 function updateScore(){
   var total=FRAMES.length,marked=Object.keys(marks).length,correct=0;
   Object.keys(marks).forEach(function(i){if(marks[i]===FRAMES[i].correct)correct++;});
@@ -379,7 +331,6 @@ function updateScore(){
   document.getElementById('scoreCorrect').textContent=marked>0?correct+' / '+marked:'\u2014';
   document.getElementById('scoreFill').style.width=(marked>0?Math.round(correct/marked*100):0)+'%';
 }
-
 function resetAll(){
   marks={};selected=null;
   document.querySelectorAll('.frame').forEach(function(el){el.classList.remove('selected');});
@@ -390,7 +341,6 @@ function resetAll(){
   ['btnPrint','btnMaybe','btnReject'].forEach(function(id){var b=document.getElementById(id);b.disabled=true;b.classList.remove('active');});
   updateScore();
 }
-
 buildTable();updateScore();
 </script>
 </body>
