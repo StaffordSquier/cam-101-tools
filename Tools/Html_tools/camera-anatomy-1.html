@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAM-101 — Camera Body Controls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F4F2EE; --surface: #FFFFFF; --text: #121212; --text-2: #4A4A4A;
+  --divider: #E2E0DA; --accent: #2F4A3F;
+  --mono: 'IBM Plex Mono', monospace; --sans: 'IBM Plex Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); font-family: var(--sans); color: var(--text); -webkit-font-smoothing: antialiased; min-height: 100%; }
+header { background: var(--surface); border-bottom: 1px solid var(--divider); padding: 14px 24px; position: sticky; top: 0; z-index: 10; display: flex; align-items: baseline; gap: 16px; }
+header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+header .sub { font-family: var(--mono); font-size: 11px; color: var(--text-2); }
+main { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+.wrap { background: var(--surface); border: 1px solid var(--divider); border-radius: 4px; padding: 24px; overflow-x: auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Camera Body Controls</h1>
+  <span class="sub">CAM-101 &nbsp;·&nbsp; Slide 1 of 2 &nbsp;·&nbsp; 35mm SLR</span>
+</header>
+<main>
+<div class="wrap">
+<svg width="100%" viewBox="0 0 1000 580" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- ── CAMERA BODY ── -->
+<rect x="300" y="190" width="370" height="220" rx="8" fill="#444441" stroke="#5A5A57" stroke-width="1.5"/>
+<rect x="300" y="175" width="330" height="22" rx="4" fill="#3A3A37" stroke="#5A5A57" stroke-width="1"/>
+
+<!-- Right grip -->
+<rect x="600" y="168" width="74" height="242" rx="12" fill="#3A3A37" stroke="#5A5A57" stroke-width="1.5"/>
+<line x1="610" y1="196" x2="610" y2="392" stroke="#2C2C2A" stroke-width="1.2"/>
+<line x1="618" y1="196" x2="618" y2="392" stroke="#2C2C2A" stroke-width="1.2"/>
+<line x1="626" y1="196" x2="626" y2="392" stroke="#2C2C2A" stroke-width="1.2"/>
+<line x1="634" y1="196" x2="634" y2="392" stroke="#2C2C2A" stroke-width="1.2"/>
+<line x1="642" y1="196" x2="642" y2="392" stroke="#2C2C2A" stroke-width="1.2"/>
+<line x1="650" y1="196" x2="650" y2="392" stroke="#2C2C2A" stroke-width="1.2"/>
+<line x1="658" y1="196" x2="658" y2="392" stroke="#2C2C2A" stroke-width="1.2"/>
+
+<!-- Pentaprism -->
+<path d="M368 175 L368 118 L406 86 L490 86 L528 118 L528 175 Z" fill="#3A3A37" stroke="#5A5A57" stroke-width="1.5"/>
+<path d="M368 175 L406 86 L448 94 L400 175 Z" fill="#FFFFFF" opacity="0.04"/>
+<path d="M528 175 L490 86 L448 94 L496 175 Z" fill="#FFFFFF" opacity="0.03"/>
+
+<!-- Viewfinder eyepiece -->
+<rect x="426" y="78" width="40" height="22" rx="5" fill="#2C2C2A" stroke="#5A5A57" stroke-width="1"/>
+<rect x="430" y="81" width="32" height="16" rx="3" fill="#1A1A18" opacity="0.9"/>
+
+<!-- Shutter speed dial -->
+<circle cx="564" cy="166" r="34" fill="#3A3A37" stroke="#5A5A57" stroke-width="1.5"/>
+<circle cx="564" cy="166" r="25" fill="#444441" stroke="#5A5A57" stroke-width="1"/>
+<circle cx="564" cy="166" r="33" fill="none" stroke="#2C2C2A" stroke-width="7" stroke-dasharray="3 3.2"/>
+<text font-family="'IBM Plex Mono',monospace" font-size="11" fill="#E2E0DA" x="564" y="160" text-anchor="middle" opacity="0.9">1/500</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="8" fill="#E2E0DA" x="564" y="174" text-anchor="middle" opacity="0.6">B 1 2 4 8</text>
+<rect x="563" y="132" width="2" height="10" rx="1" fill="#2F4A3F"/>
+
+<!-- Shutter button -->
+<ellipse cx="524" cy="176" rx="13" ry="9" fill="#5A5A57" stroke="#6A6A67" stroke-width="1"/>
+<ellipse cx="524" cy="173" rx="9" ry="6" fill="#6A6A67" opacity="0.5"/>
+
+<!-- ISO dial -->
+<circle cx="326" cy="166" r="26" fill="#3A3A37" stroke="#5A5A57" stroke-width="1.5"/>
+<circle cx="326" cy="166" r="19" fill="#444441" stroke="#5A5A57" stroke-width="1"/>
+<circle cx="326" cy="166" r="25" fill="none" stroke="#2C2C2A" stroke-width="5" stroke-dasharray="3 3"/>
+<text font-family="'IBM Plex Mono',monospace" font-size="9" fill="#E2E0DA" x="326" y="162" text-anchor="middle" opacity="0.9">ASA</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="10" fill="#2F4A3F" x="326" y="175" text-anchor="middle" font-weight="600">400</text>
+
+<!-- Film advance lever -->
+<path d="M604 174 L604 148 L609 136 L668 118 L674 127 L616 148 L618 174 Z" fill="#E2E0DA" stroke="#B4B2A9" stroke-width="1"/>
+
+<!-- Lens stub (simplified, not labeled here) -->
+<circle cx="448" cy="310" r="72" fill="#5A5A57" stroke="#6A6A67" stroke-width="1.5"/>
+<circle cx="448" cy="310" r="62" fill="#3A3A37" stroke="#5A5A57" stroke-width="1"/>
+<circle cx="448" cy="310" r="46" fill="#2C2C2A"/>
+<circle cx="448" cy="310" r="32" fill="#1A1A18"/>
+<circle cx="448" cy="310" r="16" fill="#222220"/>
+<ellipse cx="436" cy="298" rx="10" ry="6" fill="#FFFFFF" opacity="0.05" transform="rotate(-35 436 298)"/>
+<text font-family="'IBM Plex Mono',monospace" font-size="10" fill="#4A4A4A" x="448" y="448" text-anchor="middle">see slide 2 for lens controls</text>
+
+<!-- ══ CALLOUT LABELS — large, projection-readable ══ -->
+
+<!-- ISO DIAL -->
+<line x1="306" y1="146" x2="180" y2="90" stroke="#E2E0DA" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+<rect x="4" y="42" width="172" height="84" rx="4" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="0.8"/>
+<text font-family="'IBM Plex Sans',sans-serif" font-size="18" font-weight="600" fill="#121212" x="90" y="68" text-anchor="middle">ISO / ASA dial</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#4A4A4A" x="90" y="88" text-anchor="middle">Film sensitivity</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#2F4A3F" x="90" y="106" text-anchor="middle">Set once per roll</text>
+
+<!-- PENTAPRISM -->
+<line x1="448" y1="86" x2="448" y2="46" stroke="#E2E0DA" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+<rect x="340" y="4" width="216" height="38" rx="4" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="0.8"/>
+<text font-family="'IBM Plex Sans',sans-serif" font-size="18" font-weight="600" fill="#121212" x="448" y="28" text-anchor="middle">Pentaprism</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#4A4A4A" x="448" y="44" text-anchor="middle">Routes image to viewfinder</text>
+
+<!-- SHUTTER SPEED DIAL -->
+<line x1="594" y1="142" x2="720" y2="80" stroke="#E2E0DA" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+<rect x="722" y="30" width="270" height="84" rx="4" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="0.8"/>
+<text font-family="'IBM Plex Sans',sans-serif" font-size="18" font-weight="600" fill="#121212" x="857" y="56" text-anchor="middle">Shutter speed dial</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#4A4A4A" x="857" y="76" text-anchor="middle">How long the shutter stays open</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#2F4A3F" x="857" y="96" text-anchor="middle">1/1000 freeze — 1s blur</text>
+
+<!-- SHUTTER BUTTON -->
+<line x1="536" y1="174" x2="722" y2="188" stroke="#E2E0DA" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+<rect x="722" y="162" width="270" height="62" rx="4" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="0.8"/>
+<text font-family="'IBM Plex Sans',sans-serif" font-size="18" font-weight="600" fill="#121212" x="857" y="184" text-anchor="middle">Shutter button</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#4A4A4A" x="857" y="204" text-anchor="middle">Half-press to meter — full press to shoot</text>
+
+<!-- FILM ADVANCE LEVER -->
+<line x1="650" y1="138" x2="722" y2="290" stroke="#E2E0DA" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+<rect x="722" y="264" width="270" height="62" rx="4" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="0.8"/>
+<text font-family="'IBM Plex Sans',sans-serif" font-size="18" font-weight="600" fill="#121212" x="857" y="286" text-anchor="middle">Film advance lever</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#4A4A4A" x="857" y="306" text-anchor="middle">One stroke after every shot</text>
+
+<!-- VIEWFINDER -->
+<line x1="428" y1="96" x2="180" y2="200" stroke="#E2E0DA" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+<rect x="4" y="174" width="172" height="62" rx="4" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="0.8"/>
+<text font-family="'IBM Plex Sans',sans-serif" font-size="18" font-weight="600" fill="#121212" x="90" y="196" text-anchor="middle">Viewfinder</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#4A4A4A" x="90" y="216" text-anchor="middle">Frame your shot here</text>
+
+</svg>
+</div>
+</main>
+</body>
+</html>

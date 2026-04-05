@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAM-101 — Lens Controls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F4F2EE; --surface: #FFFFFF; --text: #121212; --text-2: #4A4A4A;
+  --divider: #E2E0DA; --accent: #2F4A3F;
+  --mono: 'IBM Plex Mono', monospace; --sans: 'IBM Plex Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); font-family: var(--sans); color: var(--text); -webkit-font-smoothing: antialiased; min-height: 100%; }
+header { background: var(--surface); border-bottom: 1px solid var(--divider); padding: 14px 24px; position: sticky; top: 0; z-index: 10; display: flex; align-items: baseline; gap: 16px; }
+header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+header .sub { font-family: var(--mono); font-size: 11px; color: var(--text-2); }
+main { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+.wrap { background: var(--surface); border: 1px solid var(--divider); border-radius: 4px; padding: 24px; overflow-x: auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Lens Controls + Light Meter</h1>
+  <span class="sub">CAM-101 &nbsp;·&nbsp; Slide 2 of 2 &nbsp;·&nbsp; 35mm SLR</span>
+</header>
+<main>
+<div class="wrap">
+<svg width="100%" viewBox="0 0 1000 620" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- ── CAMERA BODY (simplified, lens is the focus) ── -->
+<rect x="280" y="160" width="380" height="240" rx="8" fill="#444441" stroke="#5A5A57" stroke-width="1.5"/>
+<rect x="280" y="146" width="340" height="20" rx="4" fill="#3A3A37" stroke="#5A5A57" stroke-width="1"/>
+<rect x="580" y="138" width="70" height="262" rx="12" fill="#3A3A37" stroke="#5A5A57" stroke-width="1.5"/>
+<!-- Grip texture -->
+<line x1="590" y1="165" x2="590" y2="382" stroke="#2C2C2A" stroke-width="1.2"/>
+<line x1="598" y1="165" x2="598" y2="382" stroke="#2C2C2A" stroke-width="1.2"/>
+<line x1="606" y1="165" x2="606" y2="382" stroke="#2C2C2A" stroke-width="1.2"/>
+<line x1="614" y1="165" x2="614" y2="382" stroke="#2C2C2A" stroke-width="1.2"/>
+<line x1="622" y1="165" x2="622" y2="382" stroke="#2C2C2A" stroke-width="1.2"/>
+<line x1="630" y1="165" x2="630" y2="382" stroke="#2C2C2A" stroke-width="1.2"/>
+<!-- Pentaprism simplified -->
+<path d="M346 146 L346 104 L382 76 L460 76 L496 104 L496 146 Z" fill="#3A3A37" stroke="#5A5A57" stroke-width="1.5"/>
+
+<!-- ── LARGE LENS — center stage ── -->
+<!-- Mounting ring -->
+<circle cx="435" cy="300" r="118" fill="#5A5A57" stroke="#6A6A67" stroke-width="2"/>
+
+<!-- Focus ring — outermost, knurled -->
+<circle cx="435" cy="300" r="108" fill="#3A3A37" stroke="#5A5A57" stroke-width="1.5"/>
+<circle cx="435" cy="300" r="108" fill="none" stroke="#2C2C2A" stroke-width="12" stroke-dasharray="5 4" opacity="0.5"/>
+<!-- Focus distance markings -->
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#E2E0DA" x="435" y="196" text-anchor="middle" opacity="0.9" font-weight="500">∞</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="12" fill="#E2E0DA" x="536" y="236" text-anchor="middle" opacity="0.8">3m</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="12" fill="#E2E0DA" x="548" y="300" text-anchor="middle" opacity="0.8">2m</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="12" fill="#E2E0DA" x="536" y="368" text-anchor="middle" opacity="0.8">1m</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="12" fill="#E2E0DA" x="336" y="236" text-anchor="middle" opacity="0.8">3m</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="12" fill="#E2E0DA" x="326" y="300" text-anchor="middle" opacity="0.8">2m</text>
+
+<!-- Focus index mark -->
+<rect x="434" y="192" width="2" height="10" rx="1" fill="#2F4A3F"/>
+
+<!-- Aperture ring — second ring, distinct knurling -->
+<circle cx="435" cy="300" r="90" fill="#444441" stroke="#5A5A57" stroke-width="1.5"/>
+<circle cx="435" cy="300" r="90" fill="none" stroke="#2C2C2A" stroke-width="9" stroke-dasharray="3 5" opacity="0.4"/>
+<!-- f-stop markings -->
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#2F4A3F" x="435" y="216" text-anchor="middle" font-weight="600">f/16</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="12" fill="#E2E0DA" x="514" y="250" text-anchor="middle" opacity="0.9">f/8</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="12" fill="#E2E0DA" x="524" y="300" text-anchor="middle" opacity="0.9">f/4</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="12" fill="#E2E0DA" x="514" y="354" text-anchor="middle" opacity="0.9">f/2</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="12" fill="#E2E0DA" x="360" y="250" text-anchor="middle" opacity="0.9">f/11</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="12" fill="#E2E0DA" x="348" y="300" text-anchor="middle" opacity="0.9">f/5.6</text>
+
+<!-- Inner barrel -->
+<circle cx="435" cy="300" r="72" fill="#3A3A37" stroke="#5A5A57" stroke-width="1"/>
+
+<!-- Glass elements -->
+<circle cx="435" cy="300" r="62" fill="#2C2C2A" opacity="0.9"/>
+<circle cx="435" cy="300" r="50" fill="#1A1A18"/>
+<circle cx="435" cy="300" r="34" fill="#222220"/>
+<circle cx="435" cy="300" r="18" fill="#1A1A18"/>
+<!-- Reflections -->
+<ellipse cx="420" cy="285" rx="13" ry="8" fill="#FFFFFF" opacity="0.06" transform="rotate(-35 420 285)"/>
+<ellipse cx="450" cy="318" rx="8" ry="5" fill="#FFFFFF" opacity="0.04" transform="rotate(-35 450 318)"/>
+
+<!-- ── IN-CAMERA METER ── -->
+<rect x="560" y="370" width="80" height="52" rx="3" fill="#F4F2EE" stroke="#E2E0DA" stroke-width="1.5"/>
+<text font-family="'IBM Plex Mono',monospace" font-size="10" fill="#4A4A4A" x="600" y="386" text-anchor="middle">meter</text>
+<line x1="572" y1="410" x2="628" y2="410" stroke="#E2E0DA" stroke-width="1.2"/>
+<line x1="600" y1="392" x2="600" y2="410" stroke="#E2E0DA" stroke-width="0.8" stroke-dasharray="2 2"/>
+<!-- Needle slightly off center -->
+<line x1="588" y1="396" x2="600" y2="410" stroke="#5C2F2F" stroke-width="2.5" stroke-linecap="round"/>
+<text font-family="'IBM Plex Mono',monospace" font-size="9" fill="#4A4A4A" x="575" y="422" text-anchor="middle">-</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="9" fill="#2F4A3F" x="600" y="422" text-anchor="middle" font-weight="600">0</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="9" fill="#4A4A4A" x="625" y="422" text-anchor="middle">+</text>
+
+<!-- ══ CALLOUT LABELS — large, projection-readable ══ -->
+
+<!-- FOCUS RING -->
+<line x1="330" y1="212" x2="175" y2="150" stroke="#E2E0DA" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+<rect x="4" y="80" width="168" height="100" rx="4" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="0.8"/>
+<text font-family="'IBM Plex Sans',sans-serif" font-size="20" font-weight="600" fill="#121212" x="88" y="110" text-anchor="middle">Focus ring</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="14" fill="#4A4A4A" x="88" y="134" text-anchor="middle">Outer ring on lens</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="14" fill="#2F4A3F" x="88" y="154" text-anchor="middle">Rotate until sharp</text>
+
+<!-- APERTURE RING -->
+<line x1="348" y1="348" x2="175" y2="340" stroke="#E2E0DA" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+<rect x="4" y="290" width="168" height="100" rx="4" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="0.8"/>
+<text font-family="'IBM Plex Sans',sans-serif" font-size="20" font-weight="600" fill="#121212" x="88" y="320" text-anchor="middle">Aperture ring</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="14" fill="#4A4A4A" x="88" y="344" text-anchor="middle">Inner ring on lens</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="14" fill="#2F4A3F" x="88" y="364" text-anchor="middle">f/2 open — f/16 closed</text>
+
+<!-- FOCUS RING label annotation -->
+<line x1="435" y1="192" x2="435" y2="50" stroke="#E2E0DA" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+<rect x="315" y="4" width="240" height="42" rx="4" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="0.8"/>
+<text font-family="'IBM Plex Sans',sans-serif" font-size="16" font-weight="600" fill="#2F4A3F" x="435" y="20" text-anchor="middle">Focus index mark</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#4A4A4A" x="435" y="38" text-anchor="middle">Set aperture opposite this mark</text>
+
+<!-- DEPTH OF FIELD note on right -->
+<rect x="700" y="130" width="290" height="100" rx="4" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="0.8"/>
+<text font-family="'IBM Plex Sans',sans-serif" font-size="20" font-weight="600" fill="#121212" x="845" y="158" text-anchor="middle">Aperture controls</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="14" fill="#4A4A4A" x="845" y="180" text-anchor="middle">how much light enters</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="14" fill="#2F4A3F" x="845" y="200" text-anchor="middle">+ depth of field</text>
+<line x1="700" y1="182" x2="550" y2="295" stroke="#E2E0DA" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+
+<!-- FOCUS RING controls -->
+<rect x="700" y="262" width="290" height="100" rx="4" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="0.8"/>
+<text font-family="'IBM Plex Sans',sans-serif" font-size="20" font-weight="600" fill="#121212" x="845" y="290" text-anchor="middle">Focus ring controls</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="14" fill="#4A4A4A" x="845" y="314" text-anchor="middle">where sharpness falls</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="14" fill="#2F4A3F" x="845" y="334" text-anchor="middle">watch the viewfinder</text>
+<line x1="700" y1="310" x2="544" y2="230" stroke="#E2E0DA" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+
+<!-- METER -->
+<line x1="640" y1="396" x2="700" y2="430" stroke="#E2E0DA" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+<rect x="700" y="394" width="290" height="116" rx="4" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="0.8"/>
+<text font-family="'IBM Plex Sans',sans-serif" font-size="20" font-weight="600" fill="#121212" x="845" y="422" text-anchor="middle">In-camera meter</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="14" fill="#4A4A4A" x="845" y="446" text-anchor="middle">Needle visible in viewfinder</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="14" fill="#4A4A4A" x="845" y="466" text-anchor="middle">Needle at 0 = correct exposure</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="14" fill="#2F4A3F" x="845" y="486" text-anchor="middle">Adjust controls until balanced</text>
+
+<!-- DEPTH OF FIELD visual hint -->
+<rect x="4" y="460" width="260" height="100" rx="4" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="0.8"/>
+<text font-family="'IBM Plex Sans',sans-serif" font-size="16" font-weight="600" fill="#121212" x="134" y="484" text-anchor="middle">Depth of field</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#4A4A4A" x="134" y="504" text-anchor="middle">f/2 — shallow, background blurs</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#4A4A4A" x="134" y="522" text-anchor="middle">f/16 — deep, front to back sharp</text>
+<text font-family="'IBM Plex Mono',monospace" font-size="13" fill="#2F4A3F" x="134" y="542" text-anchor="middle">aperture ring controls this</text>
+
+</svg>
+</div>
+</main>
+</body>
+</html>
