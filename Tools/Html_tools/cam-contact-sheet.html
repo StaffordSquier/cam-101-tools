@@ -97,11 +97,36 @@ header h1 { font-size: 15px; font-weight: 600; letter-spacing: -.2px; margin: 0;
   font-family: var(--mono); font-size: 11px; color: var(--dim);
   text-align: center; line-height: 1.6;
 }
+
+/* Verdict banner */
+.verdict {
+  display: none;
+  font-family: var(--mono); font-size: 12px; font-weight: 600;
+  padding: 8px 12px; border-radius: 3px; margin-bottom: 12px;
+  letter-spacing: .02em;
+}
+.verdict.correct {
+  display: block;
+  background: #EAF2EC; color: var(--accent);
+  border: 1px solid #B8D9BE;
+}
+.verdict.incorrect {
+  display: block;
+  background: #F5EBEB; color: var(--danger);
+  border: 1px solid #D4B0B0;
+}
+.verdict.close {
+  display: block;
+  background: #FDF6EE; color: var(--warn);
+  border: 1px solid #E8C8A0;
+}
+
 .fi-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
 .fi-label { font-family: var(--mono); font-size: 10px; color: var(--text-2); }
 .fi-val   { font-family: var(--mono); font-size: 12px; color: var(--text); font-weight: 500; }
 .fi-diag  { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--div); }
 .fi-diag.revealed { color: var(--text); }
+
 .btn-row { display: flex; gap: 8px; }
 .abtn {
   flex: 1; height: 40px; border-radius: 3px; cursor: pointer;
@@ -175,10 +200,10 @@ header h1 { font-size: 15px; font-weight: 600; letter-spacing: -.2px; margin: 0;
   </div>
 
   <div class="card" id="frameInfo" style="display:none">
+    <div class="verdict" id="fiVerdict"></div>
     <div class="fi-row"><span class="fi-label">Frame</span><span class="fi-val" id="fiFrame">&mdash;</span></div>
     <div class="fi-row"><span class="fi-label">Exposure</span><span class="fi-val" id="fiExp">&mdash;</span></div>
     <div class="fi-row"><span class="fi-label">Focus</span><span class="fi-val" id="fiFocus">&mdash;</span></div>
-    <div class="fi-row"><span class="fi-label">Printable</span><span class="fi-val" id="fiPrint">&mdash;</span></div>
     <div class="fi-diag" id="fiDiag">Mark this frame to see the diagnosis.</div>
   </div>
 
@@ -294,29 +319,44 @@ function buildTable(){
     strip.appendChild(numCol);strip.appendChild(row);lt.appendChild(strip);
   }
 }
+function verdictText(marked,correct){
+  var labels={print:'print it',maybe:'maybe',reject:'reject it'};
+  if(marked===correct) return {cls:'correct', msg:'\u2713 Correct — this one is a '+labels[correct]};
+  if((marked==='print'&&correct==='maybe')||(marked==='maybe'&&correct==='print')||(marked==='maybe'&&correct==='reject')||(marked==='reject'&&correct==='maybe'))
+    return {cls:'close', msg:'Close — you marked '+labels[marked]+', but this one is a '+labels[correct]};
+  return {cls:'incorrect', msg:'\u2715 Incorrect — you marked '+labels[marked]+', but this one is a '+labels[correct]};
+}
 function updateFrameInfo(idx){
   var frame=FRAMES[idx],marked=marks[idx];
   document.getElementById('frameInfo').style.display='';
   document.getElementById('fiFrame').textContent=idx+1;
-  // Answers hidden until marked
-  document.getElementById('fiExp').textContent=marked?expLabel(frame.exp):'\u2014';
-  document.getElementById('fiFocus').textContent=marked?focusLabel(frame.focus):'\u2014';
-  document.getElementById('fiPrint').textContent=marked?(frame.correct==='print'?'Yes':frame.correct==='maybe'?'Possibly':'No'):'\u2014';
-  var diagEl=document.getElementById('fiDiag');
-  diagEl.textContent=marked?frame.diag:'Mark this frame to see the diagnosis.';
-  diagEl.className=marked?'fi-diag revealed':'fi-diag';
+  var vEl=document.getElementById('fiVerdict');
+  if(marked){
+    var v=verdictText(marked,frame.correct);
+    vEl.className='verdict '+v.cls;
+    vEl.textContent=v.msg;
+    document.getElementById('fiExp').textContent=expLabel(frame.exp);
+    document.getElementById('fiFocus').textContent=focusLabel(frame.focus);
+    var diagEl=document.getElementById('fiDiag');
+    diagEl.textContent=frame.diag;
+    diagEl.className='fi-diag revealed';
+  } else {
+    vEl.className='verdict';
+    document.getElementById('fiExp').textContent='\u2014';
+    document.getElementById('fiFocus').textContent='\u2014';
+    var diagEl2=document.getElementById('fiDiag');
+    diagEl2.textContent='Mark this frame to see the diagnosis.';
+    diagEl2.className='fi-diag';
+  }
 }
 function selectFrame(idx){
   if(selected!==null){var prev=document.querySelector('.frame[data-idx="'+selected+'"]');if(prev)prev.classList.remove('selected');}
   selected=idx;
   var el=document.querySelector('.frame[data-idx="'+idx+'"]');if(el)el.classList.add('selected');
-  // Update frame info card
   updateFrameInfo(idx);
-  // Enable assessment buttons, reflect existing mark
   ['btnPrint','btnMaybe','btnReject'].forEach(function(id){var b=document.getElementById(id);b.disabled=false;b.classList.remove('active');});
   var marked=marks[idx];
   if(marked){document.getElementById(marked==='print'?'btnPrint':marked==='maybe'?'btnMaybe':'btnReject').classList.add('active');}
-  // Render loupe after layout settles
   requestAnimationFrame(function(){
     var lc=document.getElementById('loupeCanvas');
     var lw=lc.parentElement.offsetWidth;
@@ -331,13 +371,10 @@ function focusLabel(f){return f==='sharp'?'Sharp':f==='soft'?'Slightly soft':'Mo
 function markFrame(type){
   if(selected===null)return;
   marks[selected]=type;
-  // Update mark badge on contact sheet
   var el=document.getElementById('mark-'+selected);
   el.className='mark visible '+type;
   el.textContent=type==='print'?'\u2713':type==='maybe'?'?':'\u2715';
-  // Now reveal answers in frame info
   updateFrameInfo(selected);
-  // Update button active state
   ['btnPrint','btnMaybe','btnReject'].forEach(function(id){document.getElementById(id).classList.remove('active');});
   document.getElementById(type==='print'?'btnPrint':type==='maybe'?'btnMaybe':'btnReject').classList.add('active');
   updateScore();
