@@ -22,15 +22,22 @@
   --sans: 'IBM Plex Sans', sans-serif;
 }
 *, *::before, *::after { box-sizing: border-box; }
+
+/* Entire tool fills the iframe exactly — nothing overflows */
 html, body {
-  margin: 0; padding: 0; height: 100%; width: 100%;
+  margin: 0; padding: 0;
+  height: 100%; width: 100%;
   overflow: hidden;
   font-family: var(--sans);
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
-.shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.shell {
+  display: flex; flex-direction: column;
+  height: 100vh; width: 100%;
+  overflow: hidden;
+}
 
 /* ── HEADER ── */
 header {
@@ -48,60 +55,69 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 .leg-dot.maybe  { background: var(--warn); }
 .leg-dot.reject { background: var(--danger); }
 
-/* ── BODY ── */
-.body { flex: 1; display: flex; flex-direction: row; min-height: 0; overflow: hidden; }
+/* ── BODY — fills remaining height exactly ── */
+.body {
+  flex: 1; display: flex; flex-direction: row;
+  min-height: 0; overflow: hidden;
+}
 
-/* ── SHEET PANEL ── */
+/* ── SHEET PANEL — left, fills height, no overflow ── */
 .sheet-panel {
   flex: 1; display: flex; flex-direction: column;
   background: var(--bg); border-right: 1px solid var(--div);
-  overflow-y: auto; padding: 16px;
+  overflow: hidden; padding: 12px;
 }
 .sheet-lbl {
   font-family: var(--mono); font-size: 10px; font-weight: 600;
   text-transform: uppercase; letter-spacing: .06em;
-  color: var(--text-2); margin-bottom: 10px; flex-shrink: 0;
+  color: var(--text-2); margin-bottom: 8px; flex-shrink: 0;
 }
 
-/* THE FIX: no dark background here — dark only lives on .frames-row */
+/* Film strip area — fills all remaining height */
 .contact-sheet {
-  flex: 0 0 auto;
-  background: transparent;
-  padding: 0;
-  display: flex; flex-direction: column; gap: 6px;
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  gap: 0;
+  overflow: hidden;
 }
 
-/* Film strip row — this is where the dark lives */
-.strip { display: flex; align-items: stretch; gap: 0; }
-.strip-nums {
-  width: 20px; flex-shrink: 0;
-  display: flex; flex-direction: column;
-  justify-content: space-around; padding: 4px 0;
+/* Each strip row gets equal share of available height */
+.strip {
+  flex: 1; min-height: 0;
+  display: flex; align-items: stretch;
 }
-.frame-num { font-family: var(--mono); font-size: 7px; color: #7a7060; text-align: center; line-height: 1; }
+.strip-nums {
+  width: 18px; flex-shrink: 0;
+  display: flex; flex-direction: column;
+  justify-content: space-around; padding: 2px 0;
+}
+.frame-num {
+  font-family: var(--mono); font-size: 7px;
+  color: var(--dim); text-align: center; line-height: 1;
+}
 .frames-row {
   flex: 1; display: flex; gap: 2px;
   background: #0a0806;
-  padding: 5px 4px;
-  border-top: 4px solid #0a0806;
-  border-bottom: 4px solid #0a0806;
+  padding: 4px;
+  margin: 2px 0;
   border-radius: 2px;
 }
 
-/* Individual frame */
+/* Individual frame fills its flex cell */
 .frame {
   position: relative; cursor: pointer;
-  flex: 1; aspect-ratio: 3/2;
-  border: 1px solid #0a0806; overflow: hidden; transition: transform .1s;
+  flex: 1; min-width: 0;
+  border: 1px solid #0a0806; overflow: hidden;
+  transition: transform .1s;
 }
-.frame:hover { transform: scale(1.05); z-index: 2; }
+.frame:hover { transform: scale(1.04); z-index: 2; }
 .frame.selected { box-shadow: 0 0 0 2px var(--accent); z-index: 3; }
 .frame canvas { display: block; width: 100%; height: 100%; }
 
 /* Mark badge */
 .mark {
   position: absolute; top: 2px; right: 2px;
-  width: 14px; height: 14px; border-radius: 50%;
+  width: 13px; height: 13px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: 8px; font-weight: 700;
   pointer-events: none; opacity: 0; transition: opacity .15s;
@@ -111,15 +127,18 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 .mark.reject { background: var(--danger); color: #fff; }
 .mark.maybe  { background: var(--warn);   color: #fff; }
 
-/* ── SIDEBAR ── */
+/* ── SIDEBAR — right, scrolls internally ── */
 .sidebar {
-  width: 280px; flex-shrink: 0; background: var(--surface);
-  display: flex; flex-direction: column; overflow-y: auto;
+  width: 268px; flex-shrink: 0;
+  background: var(--surface);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
 }
-.loupe-wrap { padding: 14px 16px; border-bottom: 1px solid var(--div); flex-shrink: 0; }
+.loupe-wrap { padding: 12px 14px; border-bottom: 1px solid var(--div); flex-shrink: 0; }
 .section-lbl {
   font-family: var(--mono); font-size: 10px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-2); margin-bottom: 8px;
 }
 .loupe-canvas-wrap {
   width: 100%; aspect-ratio: 3/2;
@@ -133,18 +152,19 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
   font-family: var(--mono); font-size: 11px; color: var(--dim);
   text-align: center; line-height: 1.6;
 }
-.frame-info { padding: 12px 16px; border-bottom: 1px solid var(--div); flex-shrink: 0; }
-.fi-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.frame-info { padding: 10px 14px; border-bottom: 1px solid var(--div); flex-shrink: 0; }
+.fi-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
 .fi-label { font-family: var(--mono); font-size: 10px; color: var(--text-2); }
 .fi-val   { font-family: var(--mono); font-size: 12px; color: var(--text); font-weight: 500; }
-.fi-diag  { font-size: 12px; color: var(--text-2); line-height: 1.6; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--div); }
+.fi-diag  { font-size: 12px; color: var(--text-2); line-height: 1.55; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--div); }
 .fi-diag.revealed { color: var(--text); }
-.assess-wrap { padding: 14px 16px; border-bottom: 1px solid var(--div); flex-shrink: 0; }
+.assess-wrap { padding: 12px 14px; border-bottom: 1px solid var(--div); flex-shrink: 0; }
 .btn-row { display: flex; gap: 6px; }
 .abtn {
-  flex: 1; height: 36px; border-radius: 3px; cursor: pointer;
+  flex: 1; height: 34px; border-radius: 3px; cursor: pointer;
   font-family: var(--mono); font-size: 11px; font-weight: 600;
-  border: 1px solid var(--div); background: transparent; color: var(--text-2); transition: all .15s;
+  border: 1px solid var(--div); background: transparent; color: var(--text-2);
+  transition: all .15s;
 }
 .abtn:disabled { opacity: .3; cursor: default; }
 .abtn.print  { border-color: var(--accent); color: var(--accent); }
@@ -154,16 +174,17 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 .abtn.maybe.active  { background: var(--warn);   color: #fff; }
 .abtn.reject.active { background: var(--danger);  color: #fff; }
 .abtn:hover:not(:disabled):not(.active) { background: var(--bg); }
-.score-wrap { padding: 14px 16px; flex-shrink: 0; }
+.score-wrap { padding: 12px 14px; flex-shrink: 0; }
 .score-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .score-name { font-size: 12px; color: var(--text-2); }
 .score-val { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent); }
-.score-bar { height: 3px; background: var(--div); border-radius: 2px; margin-bottom: 12px; overflow: hidden; }
+.score-bar { height: 3px; background: var(--div); border-radius: 2px; margin-bottom: 10px; overflow: hidden; }
 .score-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width .4s; }
 .reset-btn {
-  width: 100%; height: 34px; border-radius: 3px; cursor: pointer;
+  width: 100%; height: 32px; border-radius: 3px; cursor: pointer;
   font-family: var(--sans); font-size: 12px; font-weight: 500;
-  border: 1px solid var(--div); background: transparent; color: var(--text-2); transition: all .15s;
+  border: 1px solid var(--div); background: transparent; color: var(--text-2);
+  transition: all .15s;
 }
 .reset-btn:hover { border-color: #999; color: var(--text); }
 
@@ -185,20 +206,26 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 .modal-btns .abtn { flex: 1; height: 44px; font-size: 12px; }
 .modal-close { font-family: var(--mono); font-size: 11px; color: var(--text-2); background: transparent; border: 1px solid var(--div); border-radius: 3px; padding: 8px 20px; cursor: pointer; }
 
-/* ── MOBILE ── */
+/* ── MOBILE — stack vertical, both sections scroll together ── */
 @media (max-width: 640px) {
+  html, body { overflow: auto; height: auto; }
+  .shell { height: auto; overflow: visible; }
   header { padding: 0 12px; min-height: 46px; }
   header h1 { font-size: 14px; }
   .sub { display: none; }
-  .body { flex-direction: column; overflow-y: auto; }
-  .sheet-panel { flex: 0 0 auto; border-right: none; border-bottom: 2px solid var(--div); overflow-y: visible; }
-  .sidebar { width: 100%; flex: 0 0 auto; overflow-y: visible; }
+  .body { flex-direction: column; overflow: visible; }
+  .sheet-panel { flex: 0 0 auto; overflow: visible; border-right: none; border-bottom: 2px solid var(--div); }
+  .contact-sheet { overflow: visible; }
+  .strip { flex: 0 0 auto; }
+  .frames-row { aspect-ratio: unset; }
+  .frame { aspect-ratio: 3/2; }
+  .sidebar { width: 100%; overflow-y: visible; }
   .loupe-wrap { display: none; }
   .frame-info { display: none !important; }
-  .abtn { height: 44px; font-size: 12px; }
+  .abtn { height: 44px; }
   .mark { width: 16px; height: 16px; font-size: 9px; }
 }
-@media (min-width: 641px) and (max-width: 900px) { .sidebar { width: 240px; } }
+
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-thumb { background: var(--div); border-radius: 3px; }
 </style>
@@ -216,7 +243,7 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 </header>
 <div class="body">
   <div class="sheet-panel">
-    <div class="sheet-lbl">Contact Sheet — Roll 1, 24 frames</div>
+    <div class="sheet-lbl">Contact Sheet &mdash; Roll 1, 24 frames</div>
     <div class="contact-sheet" id="lightTable"></div>
   </div>
   <div class="sidebar">
@@ -228,10 +255,10 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
       </div>
     </div>
     <div class="frame-info" id="frameInfo" style="display:none">
-      <div class="fi-row"><span class="fi-label">Frame</span><span class="fi-val" id="fiFrame">—</span></div>
-      <div class="fi-row"><span class="fi-label">Exposure</span><span class="fi-val" id="fiExp">—</span></div>
-      <div class="fi-row"><span class="fi-label">Focus</span><span class="fi-val" id="fiFocus">—</span></div>
-      <div class="fi-row"><span class="fi-label">Printable</span><span class="fi-val" id="fiPrint">—</span></div>
+      <div class="fi-row"><span class="fi-label">Frame</span><span class="fi-val" id="fiFrame">&mdash;</span></div>
+      <div class="fi-row"><span class="fi-label">Exposure</span><span class="fi-val" id="fiExp">&mdash;</span></div>
+      <div class="fi-row"><span class="fi-label">Focus</span><span class="fi-val" id="fiFocus">&mdash;</span></div>
+      <div class="fi-row"><span class="fi-label">Printable</span><span class="fi-val" id="fiPrint">&mdash;</span></div>
       <div class="fi-diag" id="fiDiag">Mark this frame to see the diagnosis.</div>
     </div>
     <div class="assess-wrap">
@@ -244,7 +271,7 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
     </div>
     <div class="score-wrap">
       <div class="section-lbl" style="margin-bottom:10px;">Score</div>
-      <div class="score-row"><span class="score-name">Correct</span><span class="score-val" id="scoreCorrect">&#8212;</span></div>
+      <div class="score-row"><span class="score-name">Correct</span><span class="score-val" id="scoreCorrect">&mdash;</span></div>
       <div class="score-bar"><div class="score-fill" id="scoreFill" style="width:0%"></div></div>
       <div class="score-row"><span class="score-name">Marked</span><span class="score-val" id="scoreMarked">0 / 24</span></div>
       <button class="reset-btn" onclick="resetAll()">Reset Sheet</button>
@@ -254,9 +281,9 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-canvas-wrap"><canvas id="modalCanvas"></canvas></div>
   <div class="modal-card">
-    <div class="modal-row"><span class="modal-lbl">Frame</span><span class="modal-val" id="modalFrame">&#8212;</span></div>
-    <div class="modal-row"><span class="modal-lbl">Exposure</span><span class="modal-val" id="modalExp">&#8212;</span></div>
-    <div class="modal-row"><span class="modal-lbl">Focus</span><span class="modal-val" id="modalFocus">&#8212;</span></div>
+    <div class="modal-row"><span class="modal-lbl">Frame</span><span class="modal-val" id="modalFrame">&mdash;</span></div>
+    <div class="modal-row"><span class="modal-lbl">Exposure</span><span class="modal-val" id="modalExp">&mdash;</span></div>
+    <div class="modal-row"><span class="modal-lbl">Focus</span><span class="modal-val" id="modalFocus">&mdash;</span></div>
     <div class="modal-diag" id="modalDiag">Mark this frame to see the diagnosis.</div>
   </div>
   <div class="modal-btns">
@@ -295,8 +322,10 @@ var FRAMES=[
   {scene:'landscape',exp:0,  focus:'blur',  correct:'reject', diag:'Correctly exposed but camera shake. The horizon line is doubled. Nothing recoverable.'},
   {scene:'still',    exp:0,  focus:'sharp', correct:'print',  diag:'Good still life negative. Object detail is sharp, shadows open, highlights controlled. Print.'},
 ];
+
 function clampTone(v){return Math.max(0,Math.min(255,Math.round(v)));}
 function gray(t){return 'rgb('+t+','+t+','+t+')';}
+
 function renderFrame(canvas,frame){
   var W=canvas.width,H=canvas.height,ctx=canvas.getContext('2d');
   var shift=frame.exp*0.18,s=function(b){return clampTone(b+shift*255);};
@@ -347,30 +376,57 @@ function renderFrame(canvas,frame){
   for(var gi=0;gi<d.length;gi+=4){var n=(Math.random()-0.5)*grain*255;d[gi]=clampTone(d[gi]+n);d[gi+1]=clampTone(d[gi+1]+n);d[gi+2]=clampTone(d[gi+2]+n);}
   ctx.putImageData(imgData,0,0);
 }
+
 var marks={},selected=null;
+
 function buildTable(){
-  var lt=document.getElementById('lightTable');lt.innerHTML='';
-  for(var s=0;s<4;s++){
+  var lt=document.getElementById('lightTable');
+  lt.innerHTML='';
+  var perStrip=6,numStrips=Math.ceil(FRAMES.length/perStrip);
+  for(var s=0;s<numStrips;s++){
     var strip=document.createElement('div');strip.className='strip';
     var numCol=document.createElement('div');numCol.className='strip-nums';
     var row=document.createElement('div');row.className='frames-row';
-    for(var f=0;f<6;f++){
-      var idx=s*6+f,frame=FRAMES[idx];
+    for(var f=0;f<perStrip;f++){
+      var idx=s*perStrip+f;
+      if(idx>=FRAMES.length)break;
+      var frame=FRAMES[idx];
       var numEl=document.createElement('div');numEl.className='frame-num';numEl.textContent=idx+1;numCol.appendChild(numEl);
-      var div=document.createElement('div');div.className='frame';div.dataset.idx=idx;div.onclick=function(){selectFrame(+this.dataset.idx);};
-      var cv=document.createElement('canvas');cv.width=90;cv.height=60;renderFrame(cv,frame);div.appendChild(cv);
+      var div=document.createElement('div');div.className='frame';div.dataset.idx=idx;
+      div.onclick=function(){selectFrame(+this.dataset.idx);};
+      var cv=document.createElement('canvas');
+      div.appendChild(cv);
       var mark=document.createElement('div');mark.className='mark';mark.id='mark-'+idx;div.appendChild(mark);
       row.appendChild(div);
     }
     strip.appendChild(numCol);strip.appendChild(row);lt.appendChild(strip);
   }
+  // Size canvases after DOM is ready
+  requestAnimationFrame(sizeAndRender);
 }
+
+function sizeAndRender(){
+  var frames=document.querySelectorAll('.frame');
+  frames.forEach(function(div){
+    var cv=div.querySelector('canvas');
+    cv.width=div.offsetWidth||90;
+    cv.height=div.offsetHeight||60;
+    renderFrame(cv,FRAMES[+div.dataset.idx]);
+  });
+}
+
+window.addEventListener('resize',sizeAndRender);
+
 var isMobile=function(){return window.innerWidth<=640;},modalSelected=null;
+
 function openModal(idx){
   modalSelected=idx;var frame=FRAMES[idx],mc=document.getElementById('modalCanvas');
   var mw=Math.min(window.innerWidth-32,400);mc.width=mw;mc.height=Math.round(mw*2/3);renderFrame(mc,frame);
-  document.getElementById('modalFrame').textContent=idx+1;document.getElementById('modalExp').textContent=expLabel(frame.exp);document.getElementById('modalFocus').textContent=focusLabel(frame.focus);
-  var marked=marks[idx];document.getElementById('modalDiag').textContent=marked?frame.diag:'Mark this frame to see the diagnosis.';
+  document.getElementById('modalFrame').textContent=idx+1;
+  document.getElementById('modalExp').textContent=expLabel(frame.exp);
+  document.getElementById('modalFocus').textContent=focusLabel(frame.focus);
+  var marked=marks[idx];
+  document.getElementById('modalDiag').textContent=marked?frame.diag:'Mark this frame to see the diagnosis.';
   ['mbtnPrint','mbtnMaybe','mbtnReject'].forEach(function(id){document.getElementById(id).classList.remove('active');});
   if(marked){document.getElementById(marked==='print'?'mbtnPrint':marked==='maybe'?'mbtnMaybe':'mbtnReject').classList.add('active');}
   document.getElementById('modalOverlay').classList.add('open');
@@ -384,22 +440,29 @@ function markFrameModal(type){
   document.getElementById(type==='print'?'mbtnPrint':type==='maybe'?'mbtnMaybe':'mbtnReject').classList.add('active');
   updateScore();
 }
+
 function selectFrame(idx){
   if(isMobile()){openModal(idx);return;}
   if(selected!==null){var prev=document.querySelector('.frame[data-idx="'+selected+'"]');if(prev)prev.classList.remove('selected');}
   selected=idx;var el=document.querySelector('.frame[data-idx="'+idx+'"]');if(el)el.classList.add('selected');
-  var frame=FRAMES[idx],lc=document.getElementById('loupeCanvas'),lw=lc.parentElement.offsetWidth,lh=Math.round(lw*2/3);
+  var frame=FRAMES[idx];
+  var lc=document.getElementById('loupeCanvas'),lw=lc.parentElement.offsetWidth,lh=Math.round(lw*2/3);
   lc.width=lw;lc.height=lh;renderFrame(lc,frame);
-  document.getElementById('loupeEmpty').style.display='none';document.getElementById('frameInfo').style.display='';
-  document.getElementById('fiFrame').textContent=idx+1;document.getElementById('fiExp').textContent=expLabel(frame.exp);document.getElementById('fiFocus').textContent=focusLabel(frame.focus);
+  document.getElementById('loupeEmpty').style.display='none';
+  document.getElementById('frameInfo').style.display='';
+  document.getElementById('fiFrame').textContent=idx+1;
+  document.getElementById('fiExp').textContent=expLabel(frame.exp);
+  document.getElementById('fiFocus').textContent=focusLabel(frame.focus);
   var marked=marks[idx];
   document.getElementById('fiPrint').textContent=marked?(frame.correct==='print'?'Yes':frame.correct==='maybe'?'Possibly':'No'):'\u2014';
   var diagEl=document.getElementById('fiDiag');diagEl.textContent=marked?frame.diag:'Mark this frame to see the diagnosis.';diagEl.className=marked?'fi-diag revealed':'fi-diag';
   ['btnPrint','btnMaybe','btnReject'].forEach(function(id){var b=document.getElementById(id);b.disabled=false;b.classList.remove('active');});
   if(marked){document.getElementById(marked==='print'?'btnPrint':marked==='maybe'?'btnMaybe':'btnReject').classList.add('active');}
 }
+
 function expLabel(e){return e===0?'Correct':e===-1?'\u22121 stop (under)':e===-2?'\u22122 stops (under)':e===1?'+1 stop (over)':'+2 stops (over)';}
 function focusLabel(f){return f==='sharp'?'Sharp':f==='soft'?'Slightly soft':'Motion blur';}
+
 function markFrame(type){
   if(selected===null)return;marks[selected]=type;
   var el=document.getElementById('mark-'+selected);el.className='mark visible '+type;el.textContent=type==='print'?'\u2713':type==='maybe'?'?':'\u2715';
@@ -410,6 +473,7 @@ function markFrame(type){
   document.getElementById(type==='print'?'btnPrint':type==='maybe'?'btnMaybe':'btnReject').classList.add('active');
   updateScore();
 }
+
 function updateScore(){
   var total=FRAMES.length,marked=Object.keys(marks).length,correct=0;
   Object.keys(marks).forEach(function(i){if(marks[i]===FRAMES[i].correct)correct++;});
@@ -417,14 +481,18 @@ function updateScore(){
   document.getElementById('scoreCorrect').textContent=marked>0?correct+' / '+marked:'\u2014';
   document.getElementById('scoreFill').style.width=(marked>0?Math.round(correct/marked*100):0)+'%';
 }
+
 function resetAll(){
   marks={};selected=null;
   document.querySelectorAll('.frame').forEach(function(el){el.classList.remove('selected');});
   document.querySelectorAll('.mark').forEach(function(el){el.className='mark';el.textContent='';});
-  document.getElementById('frameInfo').style.display='none';document.getElementById('loupeEmpty').style.display='';document.getElementById('loupeCanvas').width=1;
+  document.getElementById('frameInfo').style.display='none';
+  document.getElementById('loupeEmpty').style.display='';
+  document.getElementById('loupeCanvas').width=1;
   ['btnPrint','btnMaybe','btnReject'].forEach(function(id){var b=document.getElementById(id);b.disabled=true;b.classList.remove('active');});
   updateScore();
 }
+
 buildTable();updateScore();
 </script>
 </body>
