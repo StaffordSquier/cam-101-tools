@@ -22,26 +22,17 @@
   --sans: 'IBM Plex Sans', sans-serif;
 }
 *, *::before, *::after { box-sizing: border-box; }
-
-/* Entire tool fills the iframe exactly — nothing overflows */
 html, body {
   margin: 0; padding: 0;
-  height: 100%; width: 100%;
-  overflow: hidden;
   font-family: var(--sans);
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
-.shell {
-  display: flex; flex-direction: column;
-  height: 100vh; width: 100%;
-  overflow: hidden;
-}
 
-/* ── HEADER ── */
+/* ── STICKY HEADER ── */
 header {
-  flex-shrink: 0;
+  position: sticky; top: 0; z-index: 10;
   background: var(--surface); border-bottom: 1px solid var(--div);
   display: flex; align-items: center;
   padding: 0 20px; gap: 16px; min-height: 52px;
@@ -55,59 +46,40 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 .leg-dot.maybe  { background: var(--warn); }
 .leg-dot.reject { background: var(--danger); }
 
-/* ── BODY — fills remaining height exactly ── */
-.body {
-  flex: 1; display: flex; flex-direction: row;
-  min-height: 0; overflow: hidden;
-}
-
-/* ── SHEET PANEL — left, fills height, no overflow ── */
-.sheet-panel {
-  flex: 1; display: flex; flex-direction: column;
-  background: var(--bg); border-right: 1px solid var(--div);
-  overflow: hidden; padding: 12px;
+/* ── STICKY CONTACT SHEET ── */
+.sheet-wrap {
+  position: sticky; top: 52px; z-index: 9;
+  background: var(--bg);
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid var(--div);
 }
 .sheet-lbl {
   font-family: var(--mono); font-size: 10px; font-weight: 600;
   text-transform: uppercase; letter-spacing: .06em;
-  color: var(--text-2); margin-bottom: 8px; flex-shrink: 0;
+  color: var(--text-2); margin-bottom: 8px;
 }
 
-/* Film strip area — fills all remaining height */
+/* Film strips */
 .contact-sheet {
-  flex: 1; min-height: 0;
-  display: flex; flex-direction: column;
-  gap: 0;
-  overflow: hidden;
+  display: flex; flex-direction: column; gap: 4px;
 }
-
-/* Each strip row gets equal share of available height */
-.strip {
-  flex: 1; min-height: 0;
-  display: flex; align-items: stretch;
-}
+.strip { display: flex; align-items: stretch; }
 .strip-nums {
   width: 18px; flex-shrink: 0;
   display: flex; flex-direction: column;
-  justify-content: space-around; padding: 2px 0;
+  justify-content: space-around;
 }
-.frame-num {
-  font-family: var(--mono); font-size: 7px;
-  color: var(--dim); text-align: center; line-height: 1;
-}
+.frame-num { font-family: var(--mono); font-size: 7px; color: var(--dim); text-align: center; line-height: 1; }
 .frames-row {
   flex: 1; display: flex; gap: 2px;
   background: #0a0806;
   padding: 4px;
-  margin: 2px 0;
   border-radius: 2px;
 }
-
-/* Individual frame fills its flex cell */
 .frame {
   position: relative; cursor: pointer;
-  flex: 1; min-width: 0;
-  border: 1px solid #0a0806; overflow: hidden;
+  flex: 1; aspect-ratio: 3/2;
+  overflow: hidden; border: 1px solid #0a0806;
   transition: transform .1s;
 }
 .frame:hover { transform: scale(1.04); z-index: 2; }
@@ -127,14 +99,14 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 .mark.reject { background: var(--danger); color: #fff; }
 .mark.maybe  { background: var(--warn);   color: #fff; }
 
-/* ── SIDEBAR — right, scrolls internally ── */
-.sidebar {
-  width: 268px; flex-shrink: 0;
-  background: var(--surface);
-  display: flex; flex-direction: column;
-  overflow-y: auto;
+/* ── CONTROLS — scroll below the sticky sheet ── */
+.controls {
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 16px;
 }
-.loupe-wrap { padding: 12px 14px; border-bottom: 1px solid var(--div); flex-shrink: 0; }
+
+/* Loupe */
+.loupe-wrap { background: var(--surface); border: 1px solid var(--div); border-radius: 4px; padding: 14px; }
 .section-lbl {
   font-family: var(--mono); font-size: 10px; font-weight: 600;
   text-transform: uppercase; letter-spacing: .06em;
@@ -152,17 +124,21 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
   font-family: var(--mono); font-size: 11px; color: var(--dim);
   text-align: center; line-height: 1.6;
 }
-.frame-info { padding: 10px 14px; border-bottom: 1px solid var(--div); flex-shrink: 0; }
-.fi-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+
+/* Frame info */
+.frame-info { background: var(--surface); border: 1px solid var(--div); border-radius: 4px; padding: 14px; }
+.fi-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
 .fi-label { font-family: var(--mono); font-size: 10px; color: var(--text-2); }
 .fi-val   { font-family: var(--mono); font-size: 12px; color: var(--text); font-weight: 500; }
-.fi-diag  { font-size: 12px; color: var(--text-2); line-height: 1.55; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--div); }
+.fi-diag  { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--div); }
 .fi-diag.revealed { color: var(--text); }
-.assess-wrap { padding: 12px 14px; border-bottom: 1px solid var(--div); flex-shrink: 0; }
-.btn-row { display: flex; gap: 6px; }
+
+/* Assessment buttons */
+.assess-wrap { background: var(--surface); border: 1px solid var(--div); border-radius: 4px; padding: 14px; }
+.btn-row { display: flex; gap: 8px; }
 .abtn {
-  flex: 1; height: 34px; border-radius: 3px; cursor: pointer;
-  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  flex: 1; height: 40px; border-radius: 3px; cursor: pointer;
+  font-family: var(--mono); font-size: 12px; font-weight: 600;
   border: 1px solid var(--div); background: transparent; color: var(--text-2);
   transition: all .15s;
 }
@@ -174,56 +150,29 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 .abtn.maybe.active  { background: var(--warn);   color: #fff; }
 .abtn.reject.active { background: var(--danger);  color: #fff; }
 .abtn:hover:not(:disabled):not(.active) { background: var(--bg); }
-.score-wrap { padding: 12px 14px; flex-shrink: 0; }
+
+/* Score */
+.score-wrap { background: var(--surface); border: 1px solid var(--div); border-radius: 4px; padding: 14px; }
 .score-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-.score-name { font-size: 12px; color: var(--text-2); }
-.score-val { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent); }
-.score-bar { height: 3px; background: var(--div); border-radius: 2px; margin-bottom: 10px; overflow: hidden; }
+.score-name { font-size: 13px; color: var(--text-2); }
+.score-val { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--accent); }
+.score-bar { height: 3px; background: var(--div); border-radius: 2px; margin-bottom: 12px; overflow: hidden; }
 .score-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width .4s; }
 .reset-btn {
-  width: 100%; height: 32px; border-radius: 3px; cursor: pointer;
-  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  width: 100%; height: 36px; border-radius: 3px; cursor: pointer;
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
   border: 1px solid var(--div); background: transparent; color: var(--text-2);
   transition: all .15s;
 }
 .reset-btn:hover { border-color: #999; color: var(--text); }
 
-/* ── MOBILE MODAL ── */
-.modal-overlay {
-  display: none; position: fixed; inset: 0; z-index: 100;
-  background: rgba(0,0,0,0.82);
-  align-items: center; justify-content: center; flex-direction: column; padding: 16px;
-}
-.modal-overlay.open { display: flex; }
-.modal-canvas-wrap { width: 100%; max-width: 400px; aspect-ratio: 3/2; background: #0a0806; border-radius: 3px; overflow: hidden; margin-bottom: 12px; }
-#modalCanvas { display: block; width: 100%; height: 100%; }
-.modal-card { width: 100%; max-width: 400px; background: var(--surface); border: 1px solid var(--div); border-radius: 4px; padding: 12px 14px; margin-bottom: 10px; }
-.modal-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-.modal-lbl { font-family: var(--mono); font-size: 10px; color: var(--text-2); }
-.modal-val { font-family: var(--mono); font-size: 11px; color: var(--text); font-weight: 500; }
-.modal-diag { font-size: 12px; color: var(--text-2); line-height: 1.55; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--div); }
-.modal-btns { display: flex; gap: 8px; width: 100%; max-width: 400px; margin-bottom: 10px; }
-.modal-btns .abtn { flex: 1; height: 44px; font-size: 12px; }
-.modal-close { font-family: var(--mono); font-size: 11px; color: var(--text-2); background: transparent; border: 1px solid var(--div); border-radius: 3px; padding: 8px 20px; cursor: pointer; }
-
-/* ── MOBILE — stack vertical, both sections scroll together ── */
-@media (max-width: 640px) {
-  html, body { overflow: auto; height: auto; }
-  .shell { height: auto; overflow: visible; }
+/* ── MOBILE tweaks ── */
+@media (max-width: 480px) {
   header { padding: 0 12px; min-height: 46px; }
   header h1 { font-size: 14px; }
   .sub { display: none; }
-  .body { flex-direction: column; overflow: visible; }
-  .sheet-panel { flex: 0 0 auto; overflow: visible; border-right: none; border-bottom: 2px solid var(--div); }
-  .contact-sheet { overflow: visible; }
-  .strip { flex: 0 0 auto; }
-  .frames-row { aspect-ratio: unset; }
-  .frame { aspect-ratio: 3/2; }
-  .sidebar { width: 100%; overflow-y: visible; }
-  .loupe-wrap { display: none; }
-  .frame-info { display: none !important; }
-  .abtn { height: 44px; }
-  .mark { width: 16px; height: 16px; font-size: 9px; }
+  .sheet-wrap { top: 46px; padding: 8px 12px 6px; }
+  .controls { padding: 12px; gap: 12px; }
 }
 
 ::-webkit-scrollbar { width: 5px; }
@@ -231,69 +180,59 @@ header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 </style>
 </head>
 <body>
-<div class="shell">
+
 <header>
   <h1>Reading a Contact Sheet</h1>
-  <span class="sub">CAM-101 &nbsp;·&nbsp; Week 2</span>
+  <span class="sub">CAM-101 &nbsp;&middot;&nbsp; Week 2</span>
   <div class="legend">
     <div class="leg"><div class="leg-dot print"></div>Print</div>
     <div class="leg"><div class="leg-dot maybe"></div>Maybe</div>
     <div class="leg"><div class="leg-dot reject"></div>Reject</div>
   </div>
 </header>
-<div class="body">
-  <div class="sheet-panel">
-    <div class="sheet-lbl">Contact Sheet &mdash; Roll 1, 24 frames</div>
-    <div class="contact-sheet" id="lightTable"></div>
-  </div>
-  <div class="sidebar">
-    <div class="loupe-wrap">
-      <div class="section-lbl">Loupe View</div>
-      <div class="loupe-canvas-wrap">
-        <canvas id="loupeCanvas"></canvas>
-        <div class="loupe-empty" id="loupeEmpty">Click any frame<br>to examine it</div>
-      </div>
-    </div>
-    <div class="frame-info" id="frameInfo" style="display:none">
-      <div class="fi-row"><span class="fi-label">Frame</span><span class="fi-val" id="fiFrame">&mdash;</span></div>
-      <div class="fi-row"><span class="fi-label">Exposure</span><span class="fi-val" id="fiExp">&mdash;</span></div>
-      <div class="fi-row"><span class="fi-label">Focus</span><span class="fi-val" id="fiFocus">&mdash;</span></div>
-      <div class="fi-row"><span class="fi-label">Printable</span><span class="fi-val" id="fiPrint">&mdash;</span></div>
-      <div class="fi-diag" id="fiDiag">Mark this frame to see the diagnosis.</div>
-    </div>
-    <div class="assess-wrap">
-      <div class="section-lbl" style="margin-bottom:10px;">Your Assessment</div>
-      <div class="btn-row">
-        <button class="abtn print"  id="btnPrint"  onclick="markFrame('print')"  disabled>&#10003; Print</button>
-        <button class="abtn maybe"  id="btnMaybe"  onclick="markFrame('maybe')"  disabled>? Maybe</button>
-        <button class="abtn reject" id="btnReject" onclick="markFrame('reject')" disabled>&#10005; Reject</button>
-      </div>
-    </div>
-    <div class="score-wrap">
-      <div class="section-lbl" style="margin-bottom:10px;">Score</div>
-      <div class="score-row"><span class="score-name">Correct</span><span class="score-val" id="scoreCorrect">&mdash;</span></div>
-      <div class="score-bar"><div class="score-fill" id="scoreFill" style="width:0%"></div></div>
-      <div class="score-row"><span class="score-name">Marked</span><span class="score-val" id="scoreMarked">0 / 24</span></div>
-      <button class="reset-btn" onclick="resetAll()">Reset Sheet</button>
-    </div>
-  </div>
+
+<div class="sheet-wrap">
+  <div class="sheet-lbl">Contact Sheet &mdash; Roll 1, 24 frames</div>
+  <div class="contact-sheet" id="lightTable"></div>
 </div>
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal-canvas-wrap"><canvas id="modalCanvas"></canvas></div>
-  <div class="modal-card">
-    <div class="modal-row"><span class="modal-lbl">Frame</span><span class="modal-val" id="modalFrame">&mdash;</span></div>
-    <div class="modal-row"><span class="modal-lbl">Exposure</span><span class="modal-val" id="modalExp">&mdash;</span></div>
-    <div class="modal-row"><span class="modal-lbl">Focus</span><span class="modal-val" id="modalFocus">&mdash;</span></div>
-    <div class="modal-diag" id="modalDiag">Mark this frame to see the diagnosis.</div>
+
+<div class="controls">
+
+  <div class="loupe-wrap">
+    <div class="section-lbl">Loupe View</div>
+    <div class="loupe-canvas-wrap">
+      <canvas id="loupeCanvas"></canvas>
+      <div class="loupe-empty" id="loupeEmpty">Click any frame<br>to examine it</div>
+    </div>
   </div>
-  <div class="modal-btns">
-    <button class="abtn print"  id="mbtnPrint"  onclick="markFrameModal('print')">&#10003; Print</button>
-    <button class="abtn maybe"  id="mbtnMaybe"  onclick="markFrameModal('maybe')">? Maybe</button>
-    <button class="abtn reject" id="mbtnReject" onclick="markFrameModal('reject')">&#10005; Reject</button>
+
+  <div class="frame-info" id="frameInfo" style="display:none">
+    <div class="fi-row"><span class="fi-label">Frame</span><span class="fi-val" id="fiFrame">&mdash;</span></div>
+    <div class="fi-row"><span class="fi-label">Exposure</span><span class="fi-val" id="fiExp">&mdash;</span></div>
+    <div class="fi-row"><span class="fi-label">Focus</span><span class="fi-val" id="fiFocus">&mdash;</span></div>
+    <div class="fi-row"><span class="fi-label">Printable</span><span class="fi-val" id="fiPrint">&mdash;</span></div>
+    <div class="fi-diag" id="fiDiag">Mark this frame to see the diagnosis.</div>
   </div>
-  <button class="modal-close" onclick="closeModal()">Close</button>
+
+  <div class="assess-wrap">
+    <div class="section-lbl" style="margin-bottom:10px;">Your Assessment</div>
+    <div class="btn-row">
+      <button class="abtn print"  id="btnPrint"  onclick="markFrame('print')"  disabled>&#10003; Print</button>
+      <button class="abtn maybe"  id="btnMaybe"  onclick="markFrame('maybe')"  disabled>? Maybe</button>
+      <button class="abtn reject" id="btnReject" onclick="markFrame('reject')" disabled>&#10005; Reject</button>
+    </div>
+  </div>
+
+  <div class="score-wrap">
+    <div class="section-lbl" style="margin-bottom:10px;">Score</div>
+    <div class="score-row"><span class="score-name">Correct</span><span class="score-val" id="scoreCorrect">&mdash;</span></div>
+    <div class="score-bar"><div class="score-fill" id="scoreFill" style="width:0%"></div></div>
+    <div class="score-row"><span class="score-name">Marked</span><span class="score-val" id="scoreMarked">0 / 24</span></div>
+    <button class="reset-btn" onclick="resetAll()">Reset Sheet</button>
+  </div>
+
 </div>
-</div>
+
 <script>
 'use strict';
 var FRAMES=[
@@ -380,69 +319,28 @@ function renderFrame(canvas,frame){
 var marks={},selected=null;
 
 function buildTable(){
-  var lt=document.getElementById('lightTable');
-  lt.innerHTML='';
+  var lt=document.getElementById('lightTable');lt.innerHTML='';
   var perStrip=6,numStrips=Math.ceil(FRAMES.length/perStrip);
   for(var s=0;s<numStrips;s++){
     var strip=document.createElement('div');strip.className='strip';
     var numCol=document.createElement('div');numCol.className='strip-nums';
     var row=document.createElement('div');row.className='frames-row';
     for(var f=0;f<perStrip;f++){
-      var idx=s*perStrip+f;
-      if(idx>=FRAMES.length)break;
-      var frame=FRAMES[idx];
+      var idx=s*perStrip+f;if(idx>=FRAMES.length)break;
       var numEl=document.createElement('div');numEl.className='frame-num';numEl.textContent=idx+1;numCol.appendChild(numEl);
       var div=document.createElement('div');div.className='frame';div.dataset.idx=idx;
       div.onclick=function(){selectFrame(+this.dataset.idx);};
-      var cv=document.createElement('canvas');
+      var cv=document.createElement('canvas');cv.width=90;cv.height=60;
+      renderFrame(cv,FRAMES[idx]);
       div.appendChild(cv);
       var mark=document.createElement('div');mark.className='mark';mark.id='mark-'+idx;div.appendChild(mark);
       row.appendChild(div);
     }
     strip.appendChild(numCol);strip.appendChild(row);lt.appendChild(strip);
   }
-  // Size canvases after DOM is ready
-  requestAnimationFrame(sizeAndRender);
-}
-
-function sizeAndRender(){
-  var frames=document.querySelectorAll('.frame');
-  frames.forEach(function(div){
-    var cv=div.querySelector('canvas');
-    cv.width=div.offsetWidth||90;
-    cv.height=div.offsetHeight||60;
-    renderFrame(cv,FRAMES[+div.dataset.idx]);
-  });
-}
-
-window.addEventListener('resize',sizeAndRender);
-
-var isMobile=function(){return window.innerWidth<=640;},modalSelected=null;
-
-function openModal(idx){
-  modalSelected=idx;var frame=FRAMES[idx],mc=document.getElementById('modalCanvas');
-  var mw=Math.min(window.innerWidth-32,400);mc.width=mw;mc.height=Math.round(mw*2/3);renderFrame(mc,frame);
-  document.getElementById('modalFrame').textContent=idx+1;
-  document.getElementById('modalExp').textContent=expLabel(frame.exp);
-  document.getElementById('modalFocus').textContent=focusLabel(frame.focus);
-  var marked=marks[idx];
-  document.getElementById('modalDiag').textContent=marked?frame.diag:'Mark this frame to see the diagnosis.';
-  ['mbtnPrint','mbtnMaybe','mbtnReject'].forEach(function(id){document.getElementById(id).classList.remove('active');});
-  if(marked){document.getElementById(marked==='print'?'mbtnPrint':marked==='maybe'?'mbtnMaybe':'mbtnReject').classList.add('active');}
-  document.getElementById('modalOverlay').classList.add('open');
-}
-function closeModal(){document.getElementById('modalOverlay').classList.remove('open');modalSelected=null;}
-function markFrameModal(type){
-  if(modalSelected===null)return;marks[modalSelected]=type;
-  var el=document.getElementById('mark-'+modalSelected);el.className='mark visible '+type;el.textContent=type==='print'?'\u2713':type==='maybe'?'?':'\u2715';
-  document.getElementById('modalDiag').textContent=FRAMES[modalSelected].diag;
-  ['mbtnPrint','mbtnMaybe','mbtnReject'].forEach(function(id){document.getElementById(id).classList.remove('active');});
-  document.getElementById(type==='print'?'mbtnPrint':type==='maybe'?'mbtnMaybe':'mbtnReject').classList.add('active');
-  updateScore();
 }
 
 function selectFrame(idx){
-  if(isMobile()){openModal(idx);return;}
   if(selected!==null){var prev=document.querySelector('.frame[data-idx="'+selected+'"]');if(prev)prev.classList.remove('selected');}
   selected=idx;var el=document.querySelector('.frame[data-idx="'+idx+'"]');if(el)el.classList.add('selected');
   var frame=FRAMES[idx];
@@ -458,6 +356,8 @@ function selectFrame(idx){
   var diagEl=document.getElementById('fiDiag');diagEl.textContent=marked?frame.diag:'Mark this frame to see the diagnosis.';diagEl.className=marked?'fi-diag revealed':'fi-diag';
   ['btnPrint','btnMaybe','btnReject'].forEach(function(id){var b=document.getElementById(id);b.disabled=false;b.classList.remove('active');});
   if(marked){document.getElementById(marked==='print'?'btnPrint':marked==='maybe'?'btnMaybe':'btnReject').classList.add('active');}
+  // Scroll controls into view on mobile
+  document.querySelector('.assess-wrap').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 function expLabel(e){return e===0?'Correct':e===-1?'\u22121 stop (under)':e===-2?'\u22122 stops (under)':e===1?'+1 stop (over)':'+2 stops (over)';}
