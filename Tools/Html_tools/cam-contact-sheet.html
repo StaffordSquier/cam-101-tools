@@ -9,374 +9,442 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:       #1a1612;
-  --felt:     #111109;
-  --paper:    #e8e0d0;
-  --paper-2:  #d4c8b4;
-  --surface:  #242018;
-  --border:   #3a3428;
-  --text:     #c8c0b0;
-  --text-2:   #7a7060;
-  --accent:   #2F4A3F;
-  --amber:    #c87820;
-  --red:      #8B2020;
-  --green-ok: #3a6a40;
+  --bg:      #F0F0F0;
+  --surface: #FFFFFF;
+  --text:    #121212;
+  --text-2:  #4A4A4A;
+  --dim:     #8A8A8A;
+  --div:     #E2E0DA;
+  --accent:  #2F4A3F;
+  --warn:    #7A4A1E;
+  --danger:  #5C2F2F;
   --mono: 'IBM Plex Mono', monospace;
   --sans: 'IBM Plex Sans', sans-serif;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body {
-  margin: 0; padding: 0; height: 100%;
+  margin: 0; padding: 0; height: 100%; width: 100%;
+  overflow: hidden;
   font-family: var(--sans);
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;
 }
-.shell { display: flex; flex-direction: column; height: 100vh; }
+.shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+/* ── HEADER ── */
 header {
   flex-shrink: 0;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: var(--surface); border-bottom: 1px solid var(--div);
   display: flex; align-items: center;
-  padding: 0 20px; gap: 16px; min-height: 50px;
+  padding: 0 20px; gap: 16px; min-height: 52px;
 }
-header h1 { font-size: 15px; font-weight: 600; letter-spacing: -.2px; margin: 0; color: var(--paper); }
+header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 0; }
 .sub { font-family: var(--mono); font-size: 11px; color: var(--text-2); flex: 1; }
 .legend { display: flex; gap: 14px; align-items: center; }
 .leg { display: flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 10px; color: var(--text-2); }
-.leg-mark { width: 16px; height: 16px; border-radius: 50%; border: 2px solid; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; }
-.leg-mark.print  { border-color: var(--green-ok); color: var(--green-ok); }
-.leg-mark.reject { border-color: var(--red); color: var(--red); }
-.leg-mark.maybe  { border-color: var(--amber); color: var(--amber); }
-.body { flex: 1; display: flex; min-height: 0; }
-.light-table {
-  flex: 1; background: var(--felt); padding: 16px;
-  overflow-y: auto; display: flex; flex-direction: column; gap: 0;
+.leg-dot { width: 10px; height: 10px; border-radius: 50%; }
+.leg-dot.print  { background: var(--accent); }
+.leg-dot.maybe  { background: var(--warn); }
+.leg-dot.reject { background: var(--danger); }
+
+/* ── BODY ── */
+.body { flex: 1; display: flex; flex-direction: row; min-height: 0; overflow: hidden; }
+
+/* ── LIGHT TABLE PANEL — left, never scrolls ── */
+.sheet-panel {
+  flex: 1; display: flex; flex-direction: column;
+  background: var(--bg);
+  border-right: 1px solid var(--div);
+  overflow: hidden;
+  padding: 16px;
 }
-.strip { display: flex; align-items: stretch; margin-bottom: 3px; }
-.strip-num { width: 22px; display: flex; flex-direction: column; justify-content: space-around; padding: 2px 0; }
-.frame-num { font-family: var(--mono); font-size: 8px; color: #4a4030; text-align: center; line-height: 1; }
+.sheet-lbl {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-2); margin-bottom: 10px; flex-shrink: 0;
+}
+
+/* The film strip container — dark felt surround, light table feel */
+.contact-sheet {
+  flex: 1; min-height: 0;
+  background: #181510;
+  border-radius: 4px;
+  border: 1px solid var(--div);
+  padding: 12px 10px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 4px;
+}
+
+/* Film strip row */
+.strip { display: flex; align-items: stretch; gap: 0; }
+.strip-nums {
+  width: 20px; flex-shrink: 0;
+  display: flex; flex-direction: column;
+  justify-content: space-around; padding: 4px 0;
+}
+.frame-num {
+  font-family: var(--mono); font-size: 7px;
+  color: #4a4030; text-align: center; line-height: 1;
+}
 .frames-row {
-  display: flex; gap: 2px; background: #0a0906;
-  padding: 6px 4px; border-top: 4px solid #0a0906; border-bottom: 4px solid #0a0906; flex: 1;
+  flex: 1; display: flex; gap: 2px;
+  background: #0a0806;
+  padding: 5px 4px;
+  border-top: 3px solid #0a0806;
+  border-bottom: 3px solid #0a0806;
 }
+
+/* Individual frame */
 .frame {
-  position: relative; cursor: pointer; flex: 1; aspect-ratio: 3/2;
-  border: 1px solid #0a0906; overflow: hidden; transition: transform .1s;
+  position: relative; cursor: pointer;
+  flex: 1; aspect-ratio: 3/2;
+  border: 1px solid #0a0806; overflow: hidden;
+  transition: transform .1s;
 }
-.frame:hover { transform: scale(1.04); z-index: 2; }
+.frame:hover { transform: scale(1.05); z-index: 2; }
+.frame.selected { box-shadow: 0 0 0 2px var(--accent); z-index: 3; }
 .frame canvas { display: block; width: 100%; height: 100%; }
+
+/* Mark badge */
 .mark {
-  position: absolute; top: 3px; right: 3px; width: 18px; height: 18px;
-  border-radius: 50%; border: 2px solid; display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 700; pointer-events: none; opacity: 0; transition: opacity .15s;
+  position: absolute; top: 2px; right: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; font-weight: 700;
+  pointer-events: none; opacity: 0; transition: opacity .15s;
 }
 .mark.visible { opacity: 1; }
-.mark.print  { border-color: var(--green-ok); color: var(--green-ok); background: rgba(58,106,64,0.25); }
-.mark.reject { border-color: var(--red);      color: var(--red);      background: rgba(139,32,32,0.25); }
-.mark.maybe  { border-color: var(--amber);    color: var(--amber);    background: rgba(200,120,32,0.25); }
-.frame.selected { box-shadow: 0 0 0 2px var(--amber); z-index: 3; }
+.mark.print  { background: var(--accent); color: #fff; }
+.mark.reject { background: var(--danger); color: #fff; }
+.mark.maybe  { background: var(--warn);   color: #fff; }
+
+/* ── SIDEBAR — right, scrolls ── */
 .sidebar {
-  width: 280px; flex-shrink: 0; background: var(--surface);
-  border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden;
+  width: 280px; flex-shrink: 0;
+  background: var(--surface);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
 }
-.loupe-wrap { padding: 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-.loupe-lbl { font-family: var(--mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); margin-bottom: 10px; }
+
+/* Loupe */
+.loupe-wrap {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--div);
+  flex-shrink: 0;
+}
+.section-lbl {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-2); margin-bottom: 8px;
+}
 .loupe-canvas-wrap {
-  width: 100%; aspect-ratio: 3/2; background: #0a0906;
-  border: 1px solid var(--border); border-radius: 3px; overflow: hidden; position: relative;
+  width: 100%; aspect-ratio: 3/2;
+  background: #0a0806; border: 1px solid var(--div);
+  border-radius: 3px; overflow: hidden; position: relative;
 }
 #loupeCanvas { display: block; width: 100%; height: 100%; }
 .loupe-empty {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-family: var(--mono); font-size: 11px; color: var(--text-2); text-align: center; line-height: 1.6;
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; color: var(--dim);
+  text-align: center; line-height: 1.6;
 }
-.frame-info { padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-.fi-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+
+/* Frame info */
+.frame-info {
+  padding: 12px 16px; border-bottom: 1px solid var(--div); flex-shrink: 0;
+}
+.fi-row {
+  display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px;
+}
 .fi-label { font-family: var(--mono); font-size: 10px; color: var(--text-2); }
-.fi-val { font-family: var(--mono); font-size: 12px; color: var(--paper); }
-.fi-diagnosis { font-size: 12px; color: var(--text); line-height: 1.55; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
-.mark-btns { padding: 14px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-.mark-lbl { font-family: var(--mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); margin-bottom: 10px; }
-.btn-row { display: flex; gap: 8px; }
-.mbtn {
-  flex: 1; height: 38px; border-radius: 3px; cursor: pointer;
-  font-family: var(--mono); font-size: 11px; font-weight: 600;
-  border: 1px solid; background: transparent; transition: background .15s;
+.fi-val   { font-family: var(--mono); font-size: 12px; color: var(--text); font-weight: 500; }
+.fi-diag  {
+  font-size: 12px; color: var(--text-2); line-height: 1.6;
+  margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--div);
 }
-.mbtn.print  { border-color: var(--green-ok); color: var(--green-ok); }
-.mbtn.reject { border-color: var(--red);      color: var(--red); }
-.mbtn.maybe  { border-color: var(--amber);    color: var(--amber); }
-.mbtn.print:hover  { background: rgba(58,106,64,0.2); }
-.mbtn.reject:hover { background: rgba(139,32,32,0.2); }
-.mbtn.maybe:hover  { background: rgba(200,120,32,0.2); }
-.mbtn.active.print  { background: rgba(58,106,64,0.35); }
-.mbtn.active.reject { background: rgba(139,32,32,0.35); }
-.mbtn.active.maybe  { background: rgba(200,120,32,0.35); }
-.mbtn:disabled { opacity: 0.3; cursor: default; }
-.score-panel { flex: 1; padding: 14px 16px; overflow-y: auto; }
-.score-lbl { font-family: var(--mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); margin-bottom: 12px; }
-.score-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.score-name { font-size: 12px; color: var(--text); }
-.score-val { font-family: var(--mono); font-size: 12px; }
-.score-val.ok   { color: var(--green-ok); }
-.score-val.warn { color: var(--amber); }
-.score-val.bad  { color: var(--red); }
-.score-bar { height: 2px; background: var(--border); border-radius: 1px; margin-bottom: 14px; overflow: hidden; }
-.score-fill { height: 100%; border-radius: 1px; background: var(--green-ok); transition: width .4s; }
+.fi-diag.revealed { color: var(--text); }
+
+/* Assessment buttons */
+.assess-wrap {
+  padding: 14px 16px; border-bottom: 1px solid var(--div); flex-shrink: 0;
+}
+.btn-row { display: flex; gap: 6px; }
+.abtn {
+  flex: 1; height: 36px; border-radius: 3px; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  border: 1px solid var(--div); background: transparent; color: var(--text-2);
+  transition: all .15s;
+}
+.abtn:disabled { opacity: .3; cursor: default; }
+.abtn.print  { border-color: var(--accent); color: var(--accent); }
+.abtn.maybe  { border-color: var(--warn);   color: var(--warn); }
+.abtn.reject { border-color: var(--danger);  color: var(--danger); }
+.abtn.print.active  { background: var(--accent); color: #fff; }
+.abtn.maybe.active  { background: var(--warn);   color: #fff; }
+.abtn.reject.active { background: var(--danger);  color: #fff; }
+.abtn:hover:not(:disabled):not(.active) { background: var(--bg); }
+
+/* Score */
+.score-wrap { padding: 14px 16px; flex-shrink: 0; }
+.score-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.score-name { font-size: 12px; color: var(--text-2); }
+.score-val { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent); }
+.score-bar { height: 3px; background: var(--div); border-radius: 2px; margin-bottom: 12px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width .4s; }
 .reset-btn {
   width: 100%; height: 34px; border-radius: 3px; cursor: pointer;
-  font-family: var(--mono); font-size: 11px; font-weight: 500;
-  border: 1px solid var(--border); background: transparent; color: var(--text-2);
-  margin-top: 8px; transition: border-color .15s, color .15s;
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  border: 1px solid var(--div); background: transparent; color: var(--text-2);
+  transition: all .15s;
 }
-.reset-btn:hover { border-color: var(--text-2); color: var(--text); }
+.reset-btn:hover { border-color: #999; color: var(--text); }
+
+/* ── MOBILE MODAL ── */
 .modal-overlay {
   display: none; position: fixed; inset: 0; z-index: 100;
-  background: rgba(0,0,0,0.88); align-items: center; justify-content: center;
-  flex-direction: column; padding: 16px;
+  background: rgba(0,0,0,0.82);
+  align-items: center; justify-content: center; flex-direction: column; padding: 16px;
 }
 .modal-overlay.open { display: flex; }
-.modal-canvas-wrap { width: 100%; max-width: 420px; aspect-ratio: 3/2; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 14px; }
+.modal-canvas-wrap {
+  width: 100%; max-width: 400px; aspect-ratio: 3/2;
+  background: #0a0806; border-radius: 3px; overflow: hidden; margin-bottom: 12px;
+}
 #modalCanvas { display: block; width: 100%; height: 100%; }
-.modal-info { width: 100%; max-width: 420px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; margin-bottom: 12px; }
-.modal-info-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-.modal-info-lbl { font-family: var(--mono); font-size: 10px; color: var(--text-2); }
-.modal-info-val { font-family: var(--mono); font-size: 11px; color: var(--paper); }
-.modal-diag { font-size: 12px; color: var(--text); line-height: 1.55; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
-.modal-btns { display: flex; gap: 8px; width: 100%; max-width: 420px; margin-bottom: 10px; }
-.modal-btns .mbtn { flex: 1; height: 44px; font-size: 12px; }
-.modal-close { font-family: var(--mono); font-size: 11px; color: var(--text-2); background: transparent; border: 1px solid var(--border); border-radius: 3px; padding: 8px 20px; cursor: pointer; }
+.modal-card {
+  width: 100%; max-width: 400px;
+  background: var(--surface); border: 1px solid var(--div);
+  border-radius: 4px; padding: 12px 14px; margin-bottom: 10px;
+}
+.modal-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.modal-lbl { font-family: var(--mono); font-size: 10px; color: var(--text-2); }
+.modal-val { font-family: var(--mono); font-size: 11px; color: var(--text); font-weight: 500; }
+.modal-diag { font-size: 12px; color: var(--text-2); line-height: 1.55; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--div); }
+.modal-btns { display: flex; gap: 8px; width: 100%; max-width: 400px; margin-bottom: 10px; }
+.modal-btns .abtn { flex: 1; height: 44px; font-size: 12px; }
+.modal-close {
+  font-family: var(--mono); font-size: 11px; color: var(--text-2);
+  background: transparent; border: 1px solid var(--div);
+  border-radius: 3px; padding: 8px 20px; cursor: pointer;
+}
+
+/* ── MOBILE ── */
 @media (max-width: 640px) {
-  header { padding: 0 12px; min-height: 44px; }
-  header h1 { font-size: 13px; }
+  header { padding: 0 12px; min-height: 46px; }
+  header h1 { font-size: 14px; }
   .sub { display: none; }
-  .legend { gap: 8px; }
-  .leg { font-size: 9px; }
-  .leg-mark { width: 14px; height: 14px; font-size: 8px; }
   .body { flex-direction: column; }
-  .light-table { flex: 0 0 52vh; overflow-y: auto; }
-  .sidebar { width: 100%; flex: 1; border-left: none; border-top: 2px solid var(--border); overflow-y: auto; display: flex; flex-direction: column; }
+  .sheet-panel {
+    flex: 0 0 50vh; border-right: none;
+    border-bottom: 2px solid var(--div); padding: 10px 12px;
+  }
+  .sidebar {
+    width: 100%; flex: 1; overflow-y: auto;
+    border-top: none;
+  }
   .loupe-wrap { display: none; }
   .frame-info { display: none !important; }
-  .mark-btns { padding: 10px 12px; }
-  .mbtn { height: 44px; font-size: 12px; }
-  .score-panel { padding: 10px 12px; }
-  .mark { width: 22px; height: 22px; font-size: 11px; top: 2px; right: 2px; }
+  .abtn { height: 44px; font-size: 12px; }
+  .mark { width: 16px; height: 16px; font-size: 9px; }
 }
+@media (min-width: 641px) and (max-width: 900px) {
+  .sidebar { width: 240px; }
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: var(--div); border-radius: 3px; }
 </style>
 </head>
 <body>
 <div class="shell">
+
 <header>
   <h1>Reading a Contact Sheet</h1>
   <span class="sub">CAM-101 &nbsp;·&nbsp; Week 2</span>
   <div class="legend">
-    <div class="leg"><div class="leg-mark print">✓</div>Print</div>
-    <div class="leg"><div class="leg-mark maybe">?</div>Maybe</div>
-    <div class="leg"><div class="leg-mark reject">✕</div>Reject</div>
+    <div class="leg"><div class="leg-dot print"></div>Print</div>
+    <div class="leg"><div class="leg-dot maybe"></div>Maybe</div>
+    <div class="leg"><div class="leg-dot reject"></div>Reject</div>
   </div>
 </header>
+
 <div class="body">
-  <div class="light-table" id="lightTable"></div>
+
+  <!-- LEFT: Contact sheet on light table -->
+  <div class="sheet-panel">
+    <div class="sheet-lbl">Contact Sheet — Roll 1, 24 frames</div>
+    <div class="contact-sheet" id="lightTable"></div>
+  </div>
+
+  <!-- RIGHT: Loupe + assessment -->
   <div class="sidebar">
+
     <div class="loupe-wrap">
-      <div class="loupe-lbl">Loupe View</div>
+      <div class="section-lbl">Loupe View</div>
       <div class="loupe-canvas-wrap">
         <canvas id="loupeCanvas"></canvas>
         <div class="loupe-empty" id="loupeEmpty">Click any frame<br>to examine it</div>
       </div>
     </div>
+
     <div class="frame-info" id="frameInfo" style="display:none">
       <div class="fi-row"><span class="fi-label">Frame</span><span class="fi-val" id="fiFrame">—</span></div>
       <div class="fi-row"><span class="fi-label">Exposure</span><span class="fi-val" id="fiExp">—</span></div>
       <div class="fi-row"><span class="fi-label">Focus</span><span class="fi-val" id="fiFocus">—</span></div>
       <div class="fi-row"><span class="fi-label">Printable</span><span class="fi-val" id="fiPrint">—</span></div>
-      <div class="fi-diagnosis" id="fiDiag"></div>
+      <div class="fi-diag" id="fiDiag">Mark this frame to see the diagnosis.</div>
     </div>
-    <div class="mark-btns">
-      <div class="mark-lbl">Your Assessment</div>
+
+    <div class="assess-wrap">
+      <div class="section-lbl" style="margin-bottom:10px;">Your Assessment</div>
       <div class="btn-row">
-        <button class="mbtn print"  id="btnPrint"  onclick="markFrame('print')"  disabled>✓ Print</button>
-        <button class="mbtn maybe"  id="btnMaybe"  onclick="markFrame('maybe')"  disabled>? Maybe</button>
-        <button class="mbtn reject" id="btnReject" onclick="markFrame('reject')" disabled>✕ Reject</button>
+        <button class="abtn print"  id="btnPrint"  onclick="markFrame('print')"  disabled>✓ Print</button>
+        <button class="abtn maybe"  id="btnMaybe"  onclick="markFrame('maybe')"  disabled>? Maybe</button>
+        <button class="abtn reject" id="btnReject" onclick="markFrame('reject')" disabled>✕ Reject</button>
       </div>
     </div>
-    <div class="score-panel">
-      <div class="score-lbl">Your Score</div>
-      <div class="score-row"><span class="score-name">Correct assessments</span><span class="score-val ok" id="scoreCorrect">0 / 0</span></div>
+
+    <div class="score-wrap">
+      <div class="section-lbl" style="margin-bottom:10px;">Score</div>
+      <div class="score-row">
+        <span class="score-name">Correct</span>
+        <span class="score-val" id="scoreCorrect">—</span>
+      </div>
       <div class="score-bar"><div class="score-fill" id="scoreFill" style="width:0%"></div></div>
-      <div class="score-row"><span class="score-name">Marked so far</span><span class="score-val" id="scoreMarked">0 of 24</span></div>
+      <div class="score-row">
+        <span class="score-name">Marked</span>
+        <span class="score-val" id="scoreMarked">0 / 24</span>
+      </div>
       <button class="reset-btn" onclick="resetAll()">Reset Sheet</button>
     </div>
+
   </div>
 </div>
+
+<!-- MOBILE MODAL -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-canvas-wrap"><canvas id="modalCanvas"></canvas></div>
-  <div class="modal-info" id="modalInfo">
-    <div class="modal-info-row"><span class="modal-info-lbl">Frame</span><span class="modal-info-val" id="modalFrame">—</span></div>
-    <div class="modal-info-row"><span class="modal-info-lbl">Exposure</span><span class="modal-info-val" id="modalExp">—</span></div>
-    <div class="modal-info-row"><span class="modal-info-lbl">Focus</span><span class="modal-info-val" id="modalFocus">—</span></div>
+  <div class="modal-card">
+    <div class="modal-row"><span class="modal-lbl">Frame</span><span class="modal-val" id="modalFrame">—</span></div>
+    <div class="modal-row"><span class="modal-lbl">Exposure</span><span class="modal-val" id="modalExp">—</span></div>
+    <div class="modal-row"><span class="modal-lbl">Focus</span><span class="modal-val" id="modalFocus">—</span></div>
     <div class="modal-diag" id="modalDiag">Mark this frame to see the diagnosis.</div>
   </div>
   <div class="modal-btns">
-    <button class="mbtn print"  onclick="markFrameModal('print')"  id="mbtnPrint">✓ Print</button>
-    <button class="mbtn maybe"  onclick="markFrameModal('maybe')"  id="mbtnMaybe">? Maybe</button>
-    <button class="mbtn reject" onclick="markFrameModal('reject')" id="mbtnReject">✕ Reject</button>
+    <button class="abtn print"  id="mbtnPrint"  onclick="markFrameModal('print')">✓ Print</button>
+    <button class="abtn maybe"  id="mbtnMaybe"  onclick="markFrameModal('maybe')">? Maybe</button>
+    <button class="abtn reject" id="mbtnReject" onclick="markFrameModal('reject')">✕ Reject</button>
   </div>
   <button class="modal-close" onclick="closeModal()">Close</button>
 </div>
+
 </div>
 <script>
 'use strict';
+
 var FRAMES = [
-  { scene:'street',    exp: 0,   focus:'sharp',  correct:'print',  diag:'Good shadow detail in the doorway. Highlights on the pavement are controlled. Midtones separate well. This is printable.' },
-  { scene:'portrait',  exp:-2,   focus:'sharp',  correct:'reject', diag:'Severely underexposed. The negative is too thin — the shadow areas are empty, no detail to recover. Reject.' },
-  { scene:'landscape', exp: 0,   focus:'sharp',  correct:'print',  diag:'Full tonal range. Shadow detail in the tree line is present. Sky highlights are not blocked. Print this.' },
-  { scene:'interior',  exp:+1,   focus:'sharp',  correct:'maybe',  diag:'Slightly overexposed. Highlights on the window are pushing toward blocked. May be printable with burning in, but evaluate carefully.' },
-  { scene:'still',     exp: 0,   focus:'blur',   correct:'reject', diag:'Sharp exposure but motion blur across the subject. Camera shake or slow shutter. Nothing to save here.' },
-  { scene:'street',    exp:+2,   focus:'sharp',  correct:'reject', diag:'Badly overexposed. The negative is dense — shadow areas are printing as pure white. No highlight detail remains. Reject.' },
-  { scene:'portrait',  exp: 0,   focus:'sharp',  correct:'print',  diag:'Correct exposure. The face holds full tonal range — shadow under the chin, open highlights on the forehead. Print.' },
-  { scene:'landscape', exp:-1,   focus:'sharp',  correct:'maybe',  diag:'One stop underexposed. Shadow detail is thin but possibly recoverable. Evaluate on a test strip before committing.' },
-  { scene:'interior',  exp: 0,   focus:'sharp',  correct:'print',  diag:'Good exposure for an interior — shadows open, window light controlled. Full tonal range is present. Print.' },
-  { scene:'still',     exp:+1,   focus:'sharp',  correct:'maybe',  diag:'Slightly overexposed still life. Highlight detail on the white cloth is borderline. Test strip will tell you if it can be burned back.' },
-  { scene:'street',    exp: 0,   focus:'soft',   correct:'maybe',  diag:'Correct exposure but slightly soft focus — not motion blur, possibly missed focus point. May still print interestingly.' },
-  { scene:'portrait',  exp:-1,   focus:'sharp',  correct:'maybe',  diag:'One stop under. The face is holding some shadow detail. Evaluate — you may be able to pull it back with a longer print exposure.' },
-  { scene:'landscape', exp: 0,   focus:'sharp',  correct:'print',  diag:'Excellent negative. Full shadow detail in the foreground. Sky gradation is visible. This will make a strong print.' },
-  { scene:'interior',  exp:-2,   focus:'sharp',  correct:'reject', diag:'Two stops under. The shadow areas are completely empty. There is nothing to print here. Reject.' },
-  { scene:'still',     exp: 0,   focus:'sharp',  correct:'print',  diag:'Correctly exposed still life. Texture is visible in both the highlights and the shadows. Print.' },
-  { scene:'street',    exp:+1,   focus:'blur',   correct:'reject', diag:'Overexposed and motion blurred. Two problems at once. Reject.' },
-  { scene:'portrait',  exp: 0,   focus:'sharp',  correct:'print',  diag:'Good portrait negative. Skin tones are in the midtone range where they should be. Shadow side of the face has detail. Print.' },
-  { scene:'landscape', exp:+2,   focus:'sharp',  correct:'reject', diag:'Badly overexposed landscape. The sky is completely blocked. No highlight detail survives. Reject.' },
-  { scene:'interior',  exp: 0,   focus:'sharp',  correct:'print',  diag:'Correctly exposed interior. The window is bright but not blown. Shadow areas in the corners hold detail. Print.' },
-  { scene:'still',     exp:-1,   focus:'sharp',  correct:'maybe',  diag:'One stop under on a still life. Still life subjects can sometimes tolerate some underexposure. Test strip required.' },
-  { scene:'street',    exp: 0,   focus:'sharp',  correct:'print',  diag:'Correct exposure. The cobblestones read in shadow, the building facade is not blocked. This is your best frame from the street session.' },
-  { scene:'portrait',  exp:+2,   focus:'sharp',  correct:'reject', diag:'Two stops over. The face is completely washed out. No highlight detail in the skin tones. Reject.' },
-  { scene:'landscape', exp: 0,   focus:'blur',   correct:'reject', diag:'Correctly exposed but camera shake. The horizon line is doubled. Nothing recoverable.' },
-  { scene:'still',     exp: 0,   focus:'sharp',  correct:'print',  diag:'Good still life negative. Object detail is sharp, shadows are open, highlights are controlled. Print.' },
+  {scene:'street',   exp:0,  focus:'sharp', correct:'print',  diag:'Good shadow detail in the doorway. Highlights on the pavement are controlled. Midtones separate well. This is printable.'},
+  {scene:'portrait', exp:-2, focus:'sharp', correct:'reject', diag:'Severely underexposed. The negative is too thin — shadow areas are empty, no detail to recover. Reject.'},
+  {scene:'landscape',exp:0,  focus:'sharp', correct:'print',  diag:'Full tonal range. Shadow detail in the tree line is present. Sky highlights are not blocked. Print this.'},
+  {scene:'interior', exp:+1, focus:'sharp', correct:'maybe',  diag:'Slightly overexposed. Highlights on the window are pushing toward blocked. May be printable with burning in.'},
+  {scene:'still',    exp:0,  focus:'blur',  correct:'reject', diag:'Correct exposure but motion blur across the subject. Camera shake or slow shutter. Nothing to save here.'},
+  {scene:'street',   exp:+2, focus:'sharp', correct:'reject', diag:'Badly overexposed. No highlight detail remains. Reject.'},
+  {scene:'portrait', exp:0,  focus:'sharp', correct:'print',  diag:'Correct exposure. The face holds full tonal range — shadow under the chin, open highlights on the forehead. Print.'},
+  {scene:'landscape',exp:-1, focus:'sharp', correct:'maybe',  diag:'One stop underexposed. Shadow detail is thin but possibly recoverable. Evaluate on a test strip before committing.'},
+  {scene:'interior', exp:0,  focus:'sharp', correct:'print',  diag:'Good exposure for an interior — shadows open, window light controlled. Full tonal range present. Print.'},
+  {scene:'still',    exp:+1, focus:'sharp', correct:'maybe',  diag:'Slightly overexposed. Highlight detail is borderline. A test strip will tell you if it can be burned back.'},
+  {scene:'street',   exp:0,  focus:'soft',  correct:'maybe',  diag:'Correct exposure but slightly soft focus — not motion blur, possibly missed focus point. May still print interestingly.'},
+  {scene:'portrait', exp:-1, focus:'sharp', correct:'maybe',  diag:'One stop under. The face is holding some shadow detail. You may be able to pull it back with a longer print exposure.'},
+  {scene:'landscape',exp:0,  focus:'sharp', correct:'print',  diag:'Excellent negative. Full shadow detail in the foreground. Sky gradation is visible. This will make a strong print.'},
+  {scene:'interior', exp:-2, focus:'sharp', correct:'reject', diag:'Two stops under. Shadow areas are completely empty. Nothing to print here. Reject.'},
+  {scene:'still',    exp:0,  focus:'sharp', correct:'print',  diag:'Correctly exposed. Texture visible in both highlights and shadows. Print.'},
+  {scene:'street',   exp:+1, focus:'blur',  correct:'reject', diag:'Overexposed and motion blurred. Two problems at once. Reject.'},
+  {scene:'portrait', exp:0,  focus:'sharp', correct:'print',  diag:'Good portrait negative. Skin tones in the midtone range. Shadow side of the face has detail. Print.'},
+  {scene:'landscape',exp:+2, focus:'sharp', correct:'reject', diag:'Badly overexposed. The sky is completely blocked. No highlight detail survives. Reject.'},
+  {scene:'interior', exp:0,  focus:'sharp', correct:'print',  diag:'Correctly exposed interior. Window is bright but not blown. Shadow areas in the corners hold detail. Print.'},
+  {scene:'still',    exp:-1, focus:'sharp', correct:'maybe',  diag:'One stop under. Still life subjects can tolerate some underexposure. Test strip required.'},
+  {scene:'street',   exp:0,  focus:'sharp', correct:'print',  diag:'Correct exposure. Cobblestones read in shadow, building facade is not blocked. Your best frame from this session.'},
+  {scene:'portrait', exp:+2, focus:'sharp', correct:'reject', diag:'Two stops over. Face is completely washed out. No highlight detail in the skin tones. Reject.'},
+  {scene:'landscape',exp:0,  focus:'blur',  correct:'reject', diag:'Correctly exposed but camera shake. The horizon line is doubled. Nothing recoverable.'},
+  {scene:'still',    exp:0,  focus:'sharp', correct:'print',  diag:'Good still life negative. Object detail is sharp, shadows open, highlights controlled. Print.'},
 ];
+
 function clampTone(v){return Math.max(0,Math.min(255,Math.round(v)));}
 function gray(t){return 'rgb('+t+','+t+','+t+')';}
-function renderFrame(canvas,frame,scale){
-  scale=scale||1;
+
+function renderFrame(canvas,frame){
   var W=canvas.width,H=canvas.height;
   var ctx=canvas.getContext('2d');
   var shift=frame.exp*0.18;
-  ctx.clearRect(0,0,W,H);
   var s=function(b){return clampTone(b+shift*255);};
+  ctx.clearRect(0,0,W,H);
   switch(frame.scene){
     case 'street':
-      var sky=ctx.createLinearGradient(0,0,0,H*0.45);
-      sky.addColorStop(0,gray(s(210)));sky.addColorStop(1,gray(s(170)));
-      ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.45);
+      var sky=ctx.createLinearGradient(0,0,0,H*0.45);sky.addColorStop(0,gray(s(210)));sky.addColorStop(1,gray(s(170)));ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.45);
       ctx.fillStyle=gray(s(120));ctx.fillRect(0,H*0.15,W*0.35,H*0.85);
       ctx.fillStyle=gray(s(90));ctx.fillRect(W*0.3,H*0.25,W*0.4,H*0.75);
       ctx.fillStyle=gray(s(140));ctx.fillRect(W*0.65,H*0.1,W*0.35,H*0.9);
-      ctx.fillStyle=gray(s(200));
-      for(var r=0;r<3;r++)for(var c=0;c<2;c++)ctx.fillRect(W*0.05+c*W*0.12,H*0.22+r*H*0.12,W*0.08,H*0.08);
-      ctx.fillStyle=gray(s(30));
-      for(var r2=0;r2<2;r2++)for(var c2=0;c2<3;c2++)ctx.fillRect(W*0.33+c2*W*0.1,H*0.32+r2*H*0.14,W*0.07,H*0.09);
-      var pave=ctx.createLinearGradient(0,H*0.75,0,H);
-      pave.addColorStop(0,gray(s(155)));pave.addColorStop(1,gray(s(110)));
-      ctx.fillStyle=pave;ctx.fillRect(0,H*0.75,W,H*0.25);
-      ctx.fillStyle=gray(s(40));
-      ctx.fillRect(W*0.48,H*0.5,W*0.07,H*0.28);
-      ctx.beginPath();ctx.arc(W*0.515,H*0.48,W*0.04,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=gray(s(200));for(var r=0;r<3;r++)for(var c=0;c<2;c++)ctx.fillRect(W*0.05+c*W*0.12,H*0.22+r*H*0.12,W*0.08,H*0.08);
+      ctx.fillStyle=gray(s(30));for(var r2=0;r2<2;r2++)for(var c2=0;c2<3;c2++)ctx.fillRect(W*0.33+c2*W*0.1,H*0.32+r2*H*0.14,W*0.07,H*0.09);
+      var pave=ctx.createLinearGradient(0,H*0.75,0,H);pave.addColorStop(0,gray(s(155)));pave.addColorStop(1,gray(s(110)));ctx.fillStyle=pave;ctx.fillRect(0,H*0.75,W,H*0.25);
+      ctx.fillStyle=gray(s(40));ctx.fillRect(W*0.48,H*0.5,W*0.07,H*0.28);ctx.beginPath();ctx.arc(W*0.515,H*0.48,W*0.04,0,Math.PI*2);ctx.fill();
       break;
     case 'portrait':
       ctx.fillStyle=gray(s(185));ctx.fillRect(0,0,W,H);
-      var bg=ctx.createRadialGradient(W*0.5,H*0.3,W*0.1,W*0.5,H*0.3,W*0.8);
-      bg.addColorStop(0,'rgba(255,255,255,0.08)');bg.addColorStop(1,'rgba(0,0,0,0.12)');
-      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-      ctx.fillStyle=gray(s(55));
-      ctx.beginPath();ctx.moveTo(W*0.1,H);ctx.lineTo(W*0.22,H*0.65);ctx.lineTo(W*0.4,H*0.6);
-      ctx.lineTo(W*0.6,H*0.6);ctx.lineTo(W*0.78,H*0.65);ctx.lineTo(W*0.9,H);ctx.fill();
+      ctx.fillStyle=gray(s(55));ctx.beginPath();ctx.moveTo(W*0.1,H);ctx.lineTo(W*0.22,H*0.65);ctx.lineTo(W*0.4,H*0.6);ctx.lineTo(W*0.6,H*0.6);ctx.lineTo(W*0.78,H*0.65);ctx.lineTo(W*0.9,H);ctx.fill();
       ctx.fillStyle=gray(s(155));ctx.fillRect(W*0.43,H*0.42,W*0.14,H*0.2);
       ctx.fillStyle=gray(s(175));ctx.beginPath();ctx.ellipse(W*0.5,H*0.32,W*0.2,H*0.26,0,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle=gray(s(50));
-      ctx.beginPath();ctx.ellipse(W*0.5,H*0.12,W*0.22,H*0.14,0,0,Math.PI*2);ctx.fill();
-      ctx.fillRect(W*0.28,H*0.1,W*0.04,H*0.24);ctx.fillRect(W*0.68,H*0.1,W*0.04,H*0.24);
-      ctx.fillStyle=gray(s(30));
-      ctx.beginPath();ctx.ellipse(W*0.41,H*0.3,W*0.04,H*0.025,0,0,Math.PI*2);ctx.fill();
-      ctx.beginPath();ctx.ellipse(W*0.59,H*0.3,W*0.04,H*0.025,0,0,Math.PI*2);ctx.fill();
-      var shad=ctx.createLinearGradient(W*0.5,0,W*0.3,0);
-      shad.addColorStop(0,'rgba(0,0,0,0)');shad.addColorStop(1,'rgba(0,0,0,0.28)');
-      ctx.fillStyle=shad;ctx.beginPath();ctx.ellipse(W*0.5,H*0.32,W*0.2,H*0.26,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=gray(s(50));ctx.beginPath();ctx.ellipse(W*0.5,H*0.12,W*0.22,H*0.14,0,0,Math.PI*2);ctx.fill();ctx.fillRect(W*0.28,H*0.1,W*0.04,H*0.24);ctx.fillRect(W*0.68,H*0.1,W*0.04,H*0.24);
+      ctx.fillStyle=gray(s(30));ctx.beginPath();ctx.ellipse(W*0.41,H*0.3,W*0.04,H*0.025,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(W*0.59,H*0.3,W*0.04,H*0.025,0,0,Math.PI*2);ctx.fill();
+      var shad=ctx.createLinearGradient(W*0.5,0,W*0.3,0);shad.addColorStop(0,'rgba(0,0,0,0)');shad.addColorStop(1,'rgba(0,0,0,0.28)');ctx.fillStyle=shad;ctx.beginPath();ctx.ellipse(W*0.5,H*0.32,W*0.2,H*0.26,0,0,Math.PI*2);ctx.fill();
       break;
     case 'landscape':
-      var lsky=ctx.createLinearGradient(0,0,0,H*0.55);
-      lsky.addColorStop(0,gray(s(220)));lsky.addColorStop(1,gray(s(175)));
-      ctx.fillStyle=lsky;ctx.fillRect(0,0,W,H*0.55);
-      ctx.fillStyle=gray(s(245));
-      ctx.beginPath();ctx.ellipse(W*0.25,H*0.18,W*0.15,H*0.07,0,0,Math.PI*2);ctx.fill();
-      ctx.beginPath();ctx.ellipse(W*0.7,H*0.25,W*0.12,H*0.05,0,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle=gray(s(140));
-      ctx.beginPath();ctx.moveTo(0,H*0.55);ctx.quadraticCurveTo(W*0.3,H*0.3,W*0.6,H*0.5);
-      ctx.quadraticCurveTo(W*0.8,H*0.38,W,H*0.48);ctx.lineTo(W,H*0.55);ctx.fill();
-      ctx.fillStyle=gray(s(95));
-      ctx.beginPath();ctx.moveTo(0,H*0.6);ctx.quadraticCurveTo(W*0.4,H*0.48,W*0.7,H*0.58);
-      ctx.quadraticCurveTo(W*0.85,H*0.52,W,H*0.58);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
-      var lfg=ctx.createLinearGradient(0,H*0.72,0,H);
-      lfg.addColorStop(0,gray(s(65)));lfg.addColorStop(1,gray(s(45)));
-      ctx.fillStyle=lfg;ctx.fillRect(0,H*0.72,W,H*0.28);
-      ctx.fillStyle=gray(s(30));
-      ctx.fillRect(W*0.18,H*0.38,W*0.025,H*0.35);
-      ctx.beginPath();ctx.ellipse(W*0.195,H*0.36,W*0.06,H*0.1,0,0,Math.PI*2);ctx.fill();
+      var lsky=ctx.createLinearGradient(0,0,0,H*0.55);lsky.addColorStop(0,gray(s(220)));lsky.addColorStop(1,gray(s(175)));ctx.fillStyle=lsky;ctx.fillRect(0,0,W,H*0.55);
+      ctx.fillStyle=gray(s(245));ctx.beginPath();ctx.ellipse(W*0.25,H*0.18,W*0.15,H*0.07,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(W*0.7,H*0.25,W*0.12,H*0.05,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=gray(s(140));ctx.beginPath();ctx.moveTo(0,H*0.55);ctx.quadraticCurveTo(W*0.3,H*0.3,W*0.6,H*0.5);ctx.quadraticCurveTo(W*0.8,H*0.38,W,H*0.48);ctx.lineTo(W,H*0.55);ctx.fill();
+      ctx.fillStyle=gray(s(95));ctx.beginPath();ctx.moveTo(0,H*0.6);ctx.quadraticCurveTo(W*0.4,H*0.48,W*0.7,H*0.58);ctx.quadraticCurveTo(W*0.85,H*0.52,W,H*0.58);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
+      var lfg=ctx.createLinearGradient(0,H*0.72,0,H);lfg.addColorStop(0,gray(s(65)));lfg.addColorStop(1,gray(s(45)));ctx.fillStyle=lfg;ctx.fillRect(0,H*0.72,W,H*0.28);
+      ctx.fillStyle=gray(s(30));ctx.fillRect(W*0.18,H*0.38,W*0.025,H*0.35);ctx.beginPath();ctx.ellipse(W*0.195,H*0.36,W*0.06,H*0.1,0,0,Math.PI*2);ctx.fill();
       break;
     case 'interior':
       ctx.fillStyle=gray(s(145));ctx.fillRect(0,0,W,H);
-      var ifloor=ctx.createLinearGradient(0,H*0.65,0,H);
-      ifloor.addColorStop(0,gray(s(110)));ifloor.addColorStop(1,gray(s(80)));
-      ctx.fillStyle=ifloor;ctx.fillRect(0,H*0.65,W,H*0.35);
-      var winBright=clampTone(220+shift*200);
-      ctx.fillStyle=gray(winBright);ctx.fillRect(W*0.58,H*0.08,W*0.3,H*0.45);
-      ctx.strokeStyle=gray(s(80));ctx.lineWidth=2;ctx.strokeRect(W*0.58,H*0.08,W*0.3,H*0.45);
-      ctx.beginPath();ctx.moveTo(W*0.73,H*0.08);ctx.lineTo(W*0.73,H*0.53);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(W*0.58,H*0.3);ctx.lineTo(W*0.88,H*0.3);ctx.stroke();
-      var lf=ctx.createRadialGradient(W*0.73,H*0.3,0,W*0.73,H*0.3,W*0.6);
-      lf.addColorStop(0,'rgba(255,255,255,0.15)');lf.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=lf;ctx.fillRect(0,0,W,H);
-      ctx.fillStyle=gray(s(100));ctx.fillRect(W*0.05,H*0.58,W*0.5,H*0.06);
-      ctx.fillStyle=gray(s(85));ctx.fillRect(W*0.08,H*0.64,W*0.06,H*0.2);ctx.fillRect(W*0.46,H*0.64,W*0.06,H*0.2);
+      var ifloor=ctx.createLinearGradient(0,H*0.65,0,H);ifloor.addColorStop(0,gray(s(110)));ifloor.addColorStop(1,gray(s(80)));ctx.fillStyle=ifloor;ctx.fillRect(0,H*0.65,W,H*0.35);
+      var winBright=clampTone(220+shift*200);ctx.fillStyle=gray(winBright);ctx.fillRect(W*0.58,H*0.08,W*0.3,H*0.45);
+      ctx.strokeStyle=gray(s(80));ctx.lineWidth=2;ctx.strokeRect(W*0.58,H*0.08,W*0.3,H*0.45);ctx.beginPath();ctx.moveTo(W*0.73,H*0.08);ctx.lineTo(W*0.73,H*0.53);ctx.stroke();ctx.beginPath();ctx.moveTo(W*0.58,H*0.3);ctx.lineTo(W*0.88,H*0.3);ctx.stroke();
+      var lf=ctx.createRadialGradient(W*0.73,H*0.3,0,W*0.73,H*0.3,W*0.6);lf.addColorStop(0,'rgba(255,255,255,0.15)');lf.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=lf;ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=gray(s(100));ctx.fillRect(W*0.05,H*0.58,W*0.5,H*0.06);ctx.fillStyle=gray(s(85));ctx.fillRect(W*0.08,H*0.64,W*0.06,H*0.2);ctx.fillRect(W*0.46,H*0.64,W*0.06,H*0.2);
       ctx.fillStyle=gray(s(170));ctx.fillRect(W*0.2,H*0.44,W*0.14,H*0.14);
       break;
     case 'still':
-      var sbg=ctx.createLinearGradient(0,0,0,H);
-      sbg.addColorStop(0,gray(s(200)));sbg.addColorStop(0.5,gray(s(175)));sbg.addColorStop(1,gray(s(130)));
-      ctx.fillStyle=sbg;ctx.fillRect(0,0,W,H);
+      var sbg=ctx.createLinearGradient(0,0,0,H);sbg.addColorStop(0,gray(s(200)));sbg.addColorStop(0.5,gray(s(175)));sbg.addColorStop(1,gray(s(130)));ctx.fillStyle=sbg;ctx.fillRect(0,0,W,H);
       ctx.fillStyle=gray(s(155));ctx.fillRect(0,H*0.55,W,H*0.45);
-      ctx.fillStyle=gray(s(80));
-      ctx.beginPath();ctx.moveTo(W*0.42,H*0.8);ctx.lineTo(W*0.38,H*0.55);
-      ctx.quadraticCurveTo(W*0.35,H*0.25,W*0.45,H*0.18);ctx.lineTo(W*0.55,H*0.18);
-      ctx.quadraticCurveTo(W*0.65,H*0.25,W*0.62,H*0.55);ctx.lineTo(W*0.58,H*0.8);ctx.fill();
+      ctx.fillStyle=gray(s(80));ctx.beginPath();ctx.moveTo(W*0.42,H*0.8);ctx.lineTo(W*0.38,H*0.55);ctx.quadraticCurveTo(W*0.35,H*0.25,W*0.45,H*0.18);ctx.lineTo(W*0.55,H*0.18);ctx.quadraticCurveTo(W*0.65,H*0.25,W*0.62,H*0.55);ctx.lineTo(W*0.58,H*0.8);ctx.fill();
       ctx.fillStyle=gray(s(160));ctx.beginPath();ctx.ellipse(W*0.44,H*0.42,W*0.025,H*0.12,-0.3,0,Math.PI*2);ctx.fill();
       ctx.fillStyle=gray(s(120));ctx.beginPath();ctx.ellipse(W*0.72,H*0.64,W*0.07,H*0.05,0,0,Math.PI*2);ctx.fill();
       ctx.fillStyle=gray(s(100));ctx.beginPath();ctx.ellipse(W*0.5,H*0.82,W*0.12,H*0.04,0,0,Math.PI*2);ctx.fill();
       break;
   }
-  if(frame.focus==='blur'){
-    ctx.save();ctx.globalAlpha=0.4;
-    for(var i=-3;i<=3;i++){if(i===0)continue;ctx.drawImage(canvas,i*scale*3,i*scale*1.5);}
-    ctx.restore();
-  } else if(frame.focus==='soft'){
-    ctx.save();ctx.globalAlpha=0.3;ctx.drawImage(canvas,1,0.5);ctx.drawImage(canvas,-1,-0.5);ctx.restore();
-  }
-  ctx.fillStyle='rgba(220,200,160,0.06)';ctx.fillRect(0,0,W,H);
-  var imgData=ctx.getImageData(0,0,W,H);var d=imgData.data;
-  var grain=0.12+Math.abs(frame.exp)*0.04;
+  if(frame.focus==='blur'){ctx.save();ctx.globalAlpha=0.4;for(var i=-3;i<=3;i++){if(i===0)continue;ctx.drawImage(canvas,i*3,i*1.5);}ctx.restore();}
+  else if(frame.focus==='soft'){ctx.save();ctx.globalAlpha=0.3;ctx.drawImage(canvas,1,0.5);ctx.drawImage(canvas,-1,-0.5);ctx.restore();}
+  ctx.fillStyle='rgba(220,200,160,0.05)';ctx.fillRect(0,0,W,H);
+  var imgData=ctx.getImageData(0,0,W,H);var d=imgData.data;var grain=0.10+Math.abs(frame.exp)*0.04;
   for(var gi=0;gi<d.length;gi+=4){var n=(Math.random()-0.5)*grain*255;d[gi]=clampTone(d[gi]+n);d[gi+1]=clampTone(d[gi+1]+n);d[gi+2]=clampTone(d[gi+2]+n);}
   ctx.putImageData(imgData,0,0);
 }
+
 var marks={},selected=null;
+
 function buildTable(){
   var lt=document.getElementById('lightTable');lt.innerHTML='';
-  for(var s=0;s<4;s++){
+  var strips=4,perStrip=6;
+  for(var s=0;s<strips;s++){
     var strip=document.createElement('div');strip.className='strip';
-    var numCol=document.createElement('div');numCol.className='strip-num';
+    var numCol=document.createElement('div');numCol.className='strip-nums';
     var row=document.createElement('div');row.className='frames-row';
-    for(var f=0;f<6;f++){
-      var idx=s*6+f;var frame=FRAMES[idx];
+    for(var f=0;f<perStrip;f++){
+      var idx=s*perStrip+f;var frame=FRAMES[idx];
       var numEl=document.createElement('div');numEl.className='frame-num';numEl.textContent=idx+1;numCol.appendChild(numEl);
       var div=document.createElement('div');div.className='frame';div.dataset.idx=idx;
       div.onclick=function(){selectFrame(+this.dataset.idx);};
@@ -387,13 +455,14 @@ function buildTable(){
     strip.appendChild(numCol);strip.appendChild(row);lt.appendChild(strip);
   }
 }
+
 var isMobile=function(){return window.innerWidth<=640;};
 var modalSelected=null;
+
 function openModal(idx){
   modalSelected=idx;var frame=FRAMES[idx];
-  var mc=document.getElementById('modalCanvas');
-  var mw=Math.min(window.innerWidth-32,420);mc.width=mw;mc.height=Math.round(mw*2/3);
-  renderFrame(mc,frame,mw/90);
+  var mc=document.getElementById('modalCanvas');var mw=Math.min(window.innerWidth-32,400);
+  mc.width=mw;mc.height=Math.round(mw*2/3);renderFrame(mc,frame);
   document.getElementById('modalFrame').textContent=idx+1;
   document.getElementById('modalExp').textContent=expLabel(frame.exp);
   document.getElementById('modalFocus').textContent=focusLabel(frame.focus);
@@ -406,52 +475,54 @@ function openModal(idx){
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open');modalSelected=null;}
 function markFrameModal(type){
   if(modalSelected===null)return;marks[modalSelected]=type;
-  var markEl=document.getElementById('mark-'+modalSelected);
-  markEl.className='mark visible '+type;markEl.textContent=type==='print'?'✓':type==='maybe'?'?':'✕';
+  var el=document.getElementById('mark-'+modalSelected);el.className='mark visible '+type;el.textContent=type==='print'?'✓':type==='maybe'?'?':'✕';
   document.getElementById('modalDiag').textContent=FRAMES[modalSelected].diag;
   ['mbtnPrint','mbtnMaybe','mbtnReject'].forEach(function(id){document.getElementById(id).classList.remove('active');});
-  var aid=type==='print'?'mbtnPrint':type==='maybe'?'mbtnMaybe':'mbtnReject';document.getElementById(aid).classList.add('active');
+  document.getElementById(type==='print'?'mbtnPrint':type==='maybe'?'mbtnMaybe':'mbtnReject').classList.add('active');
   updateScore();
 }
+
 function selectFrame(idx){
   if(isMobile()){openModal(idx);return;}
   if(selected!==null){var prev=document.querySelector('.frame[data-idx="'+selected+'"]');if(prev)prev.classList.remove('selected');}
   selected=idx;var el=document.querySelector('.frame[data-idx="'+idx+'"]');if(el)el.classList.add('selected');
   var frame=FRAMES[idx];
   var lc=document.getElementById('loupeCanvas');var lw=lc.parentElement.offsetWidth;var lh=Math.round(lw*2/3);
-  lc.width=lw;lc.height=lh;renderFrame(lc,frame,lw/90);
+  lc.width=lw;lc.height=lh;renderFrame(lc,frame);
   document.getElementById('loupeEmpty').style.display='none';
   document.getElementById('frameInfo').style.display='';
   document.getElementById('fiFrame').textContent=idx+1;
   document.getElementById('fiExp').textContent=expLabel(frame.exp);
   document.getElementById('fiFocus').textContent=focusLabel(frame.focus);
-  var marked=marks[idx];var printable=frame.correct==='print'?'Yes':frame.correct==='maybe'?'Possibly':'No';
-  document.getElementById('fiPrint').textContent=marked?printable:'—';
-  document.getElementById('fiDiag').textContent=marked?frame.diag:'Mark this frame to see the diagnosis.';
-  ['btnPrint','btnMaybe','btnReject'].forEach(function(id){var btn=document.getElementById(id);btn.disabled=false;btn.classList.remove('active');});
-  if(marked){var ab=marked==='print'?'btnPrint':marked==='maybe'?'btnMaybe':'btnReject';document.getElementById(ab).classList.add('active');}
+  var marked=marks[idx];
+  document.getElementById('fiPrint').textContent=marked?(frame.correct==='print'?'Yes':frame.correct==='maybe'?'Possibly':'No'):'—';
+  var diagEl=document.getElementById('fiDiag');diagEl.textContent=marked?frame.diag:'Mark this frame to see the diagnosis.';diagEl.className=marked?'fi-diag revealed':'fi-diag';
+  ['btnPrint','btnMaybe','btnReject'].forEach(function(id){var b=document.getElementById(id);b.disabled=false;b.classList.remove('active');});
+  if(marked){document.getElementById(marked==='print'?'btnPrint':marked==='maybe'?'btnMaybe':'btnReject').classList.add('active');}
 }
-function expLabel(exp){if(exp===0)return 'Correct';if(exp===-1)return '−1 stop (under)';if(exp===-2)return '−2 stops (under)';if(exp===1)return '+1 stop (over)';if(exp===2)return '+2 stops (over)';return exp;}
-function focusLabel(f){if(f==='sharp')return 'Sharp';if(f==='soft')return 'Slightly soft';if(f==='blur')return 'Motion blur';return f;}
+
+function expLabel(e){return e===0?'Correct':e===-1?'−1 stop (under)':e===-2?'−2 stops (under)':e===1?'+1 stop (over)':'+2 stops (over)';}
+function focusLabel(f){return f==='sharp'?'Sharp':f==='soft'?'Slightly soft':'Motion blur';}
+
 function markFrame(type){
   if(selected===null)return;marks[selected]=type;
-  var markEl=document.getElementById('mark-'+selected);markEl.className='mark visible '+type;
-  markEl.textContent=type==='print'?'✓':type==='maybe'?'?':'✕';
-  var frame=FRAMES[selected];var printable=frame.correct==='print'?'Yes':frame.correct==='maybe'?'Possibly':'No';
-  document.getElementById('fiPrint').textContent=printable;document.getElementById('fiDiag').textContent=frame.diag;
+  var el=document.getElementById('mark-'+selected);el.className='mark visible '+type;el.textContent=type==='print'?'✓':type==='maybe'?'?':'✕';
+  var frame=FRAMES[selected];
+  document.getElementById('fiPrint').textContent=frame.correct==='print'?'Yes':frame.correct==='maybe'?'Possibly':'No';
+  var diagEl=document.getElementById('fiDiag');diagEl.textContent=frame.diag;diagEl.className='fi-diag revealed';
   ['btnPrint','btnMaybe','btnReject'].forEach(function(id){document.getElementById(id).classList.remove('active');});
-  var ab=type==='print'?'btnPrint':type==='maybe'?'btnMaybe':'btnReject';document.getElementById(ab).classList.add('active');
+  document.getElementById(type==='print'?'btnPrint':type==='maybe'?'btnMaybe':'btnReject').classList.add('active');
   updateScore();
 }
+
 function updateScore(){
   var total=FRAMES.length,marked=Object.keys(marks).length,correct=0;
-  Object.keys(marks).forEach(function(idx){if(marks[idx]===FRAMES[idx].correct)correct++;});
-  document.getElementById('scoreMarked').textContent=marked+' of '+total;
-  document.getElementById('scoreCorrect').textContent=correct+' / '+marked;
-  var pct=marked>0?Math.round(correct/marked*100):0;
-  document.getElementById('scoreFill').style.width=pct+'%';
-  document.getElementById('scoreCorrect').className='score-val '+(pct>=80?'ok':pct>=60?'warn':'bad');
+  Object.keys(marks).forEach(function(i){if(marks[i]===FRAMES[i].correct)correct++;});
+  document.getElementById('scoreMarked').textContent=marked+' / '+total;
+  document.getElementById('scoreCorrect').textContent=marked>0?correct+' / '+marked:'—';
+  document.getElementById('scoreFill').style.width=(marked>0?Math.round(correct/marked*100):0)+'%';
 }
+
 function resetAll(){
   marks={};selected=null;
   document.querySelectorAll('.frame').forEach(function(el){el.classList.remove('selected');});
@@ -459,9 +530,10 @@ function resetAll(){
   document.getElementById('frameInfo').style.display='none';
   document.getElementById('loupeEmpty').style.display='';
   document.getElementById('loupeCanvas').width=1;
-  ['btnPrint','btnMaybe','btnReject'].forEach(function(id){var btn=document.getElementById(id);btn.disabled=true;btn.classList.remove('active');});
+  ['btnPrint','btnMaybe','btnReject'].forEach(function(id){var b=document.getElementById(id);b.disabled=true;b.classList.remove('active');});
   updateScore();
 }
+
 buildTable();updateScore();
 </script>
 </body>
