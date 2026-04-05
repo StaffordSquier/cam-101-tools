@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAM-101 — How a Camera Works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #F4F2EE;
+  --surface: #FFFFFF;
+  --text:    #121212;
+  --text-2:  #4A4A4A;
+  --divider: #E2E0DA;
+  --accent:  #2F4A3F;
+  --warn:    #7A4A1E;
+  --mono:    'IBM Plex Mono', monospace;
+  --sans:    'IBM Plex Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg);
+  font-family: var(--sans);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--divider);
+  padding: 14px 24px;
+  position: sticky; top: 0; z-index: 10;
+}
+header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+header .sub { font-family: var(--mono); font-size: 11px; color: var(--text-2); margin-top: 3px; }
+
+main { max-width: 900px; margin: 0 auto; padding: 32px 20px 60px; }
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-2);
+  margin-bottom: 16px;
+}
+
+/* ── LIGHT FLOW DIAGRAM ── */
+.flow {
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: 4px;
+  padding: 28px 24px 20px;
+  margin-bottom: 28px;
+}
+
+.flow-title {
+  font-size: 15px; font-weight: 600;
+  margin-bottom: 24px;
+  color: var(--text);
+}
+
+.flow-steps {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.flow-step {
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* arrow between steps */
+.flow-step + .flow-step::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 28px;
+  width: 0; height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 14px solid var(--accent);
+  z-index: 2;
+}
+
+.step-icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.step-icon svg { width: 28px; height: 28px; }
+
+.step-name {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--accent);
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.step-desc {
+  font-size: 13px;
+  color: var(--text-2);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.flow-caption {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-2);
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--divider);
+  line-height: 1.6;
+}
+
+/* ── THREE VARIABLES CARDS ── */
+.vars {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.var-card {
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.var-header {
+  background: var(--accent);
+  padding: 14px 16px 10px;
+}
+
+.var-number {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 3px;
+}
+
+.var-name {
+  font-size: 16px; font-weight: 600;
+  color: #fff;
+}
+
+.var-body { padding: 16px; }
+
+.var-control {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.var-desc {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+
+.var-scale {
+  border-top: 1px solid var(--divider);
+  padding-top: 12px;
+}
+
+.scale-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.scale-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-2);
+}
+
+.scale-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  margin: 0 10px;
+  background: linear-gradient(to right, var(--accent), #AACBB8);
+}
+
+.scale-bar.reverse {
+  background: linear-gradient(to right, #AACBB8, var(--accent));
+}
+
+.scale-ends {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+
+/* ── AUTO MODES ── */
+.modes {
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: 4px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+}
+
+.modes-title {
+  font-size: 15px; font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.mode-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--divider);
+}
+.mode-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.mode-badge {
+  font-family: var(--mono);
+  font-size: 13px; font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 3px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+  width: 48px;
+  text-align: center;
+}
+
+.mode-badge.gray {
+  background: var(--text-2);
+}
+
+.mode-content { flex: 1; }
+
+.mode-name {
+  font-size: 14px; font-weight: 500;
+  margin-bottom: 3px;
+}
+
+.mode-desc {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+.mode-use {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  margin-top: 4px;
+}
+
+/* ── FILM REMINDER ── */
+.film-note {
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 16px 20px;
+}
+
+.film-note p {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+.film-note strong { color: var(--text); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  .vars { grid-template-columns: 1fr; }
+  .flow-steps { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .flow-step + .flow-step::before {
+    left: 27px; top: -14px;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 14px solid var(--accent);
+    border-bottom: none;
+  }
+  .flow-step { flex-direction: row; align-items: flex-start; gap: 16px; text-align: left; }
+  .step-name { text-align: left; }
+  .step-desc { text-align: left; }
+}
+
+::-webkit-scrollbar { height: 5px; }
+::-webkit-scrollbar-thumb { background: var(--divider); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>How a Camera Works</h1>
+  <div class="sub">CAM-101 &nbsp;·&nbsp; Week 1 reference</div>
+</header>
+
+<main>
+
+  <p class="section-label">What a camera is doing</p>
+
+  <div class="flow">
+    <div class="flow-title">Light travels through four decision points on its way to becoming a photograph.</div>
+
+    <div class="flow-steps">
+
+      <div class="flow-step">
+        <div class="step-icon">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="14" cy="14" r="5" stroke="white" stroke-width="1.8"/>
+            <line x1="14" y1="3" x2="14" y2="6" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="14" y1="22" x2="14" y2="25" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="3" y1="14" x2="6" y2="14" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="22" y1="14" x2="25" y2="14" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="6.5" y1="6.5" x2="8.5" y2="8.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="19.5" y1="19.5" x2="21.5" y2="21.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="21.5" y1="6.5" x2="19.5" y2="8.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="6.5" y1="21.5" x2="8.5" y2="19.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="step-name">Light</div>
+        <div class="step-desc">The world reflects light. Your camera collects it.</div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-icon">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="14" cy="14" r="10" stroke="white" stroke-width="1.8"/>
+            <circle cx="14" cy="14" r="5" stroke="white" stroke-width="1.8"/>
+            <circle cx="14" cy="14" r="1.5" fill="white"/>
+          </svg>
+        </div>
+        <div class="step-name">Aperture</div>
+        <div class="step-desc">How wide the lens opens. Controls brightness and depth of field.</div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-icon">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="10" width="20" height="8" rx="1" stroke="white" stroke-width="1.8"/>
+            <line x1="11" y1="10" x2="11" y2="18" stroke="white" stroke-width="1.8"/>
+            <line x1="17" y1="10" x2="17" y2="18" stroke="white" stroke-width="1.8"/>
+            <line x1="14" y1="5" x2="14" y2="8" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="14" y1="20" x2="14" y2="23" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="step-name">Shutter</div>
+        <div class="step-desc">How long it stays open. Controls time -- freezes or blurs motion.</div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-icon">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="8" width="20" height="14" rx="2" stroke="white" stroke-width="1.8"/>
+            <line x1="9" y1="12" x2="19" y2="12" stroke="white" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>
+            <line x1="9" y1="15" x2="19" y2="15" stroke="white" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>
+            <line x1="9" y1="18" x2="15" y2="18" stroke="white" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="step-name">Film / ISO</div>
+        <div class="step-desc">How sensitive the film is. Set when you load -- fixed for the roll.</div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-icon" style="background: var(--text-2);">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="7" width="18" height="14" rx="2" stroke="white" stroke-width="1.8"/>
+            <rect x="9" y="11" width="10" height="7" rx="1" stroke="white" stroke-width="1.4"/>
+            <circle cx="14" cy="14.5" r="2" fill="white" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="step-name">Image</div>
+        <div class="step-desc">Light becomes a latent image on the film. Made permanent in the darkroom.</div>
+      </div>
+
+    </div>
+
+    <div class="flow-caption">
+      Every photograph is the result of three decisions: how wide (aperture), how long (shutter), and how sensitive (ISO). Change one and the others are affected. This is the exposure triangle.
+    </div>
+  </div>
+
+  <p class="section-label" style="margin-top: 32px;">The three variables</p>
+
+  <div class="vars">
+
+    <div class="var-card">
+      <div class="var-header">
+        <div class="var-number">Variable 1</div>
+        <div class="var-name">Aperture</div>
+      </div>
+      <div class="var-body">
+        <div class="var-control">Where to find it: aperture ring on the lens</div>
+        <div class="var-desc">The iris of the lens. Controls how much light enters and how much of the scene is in sharp focus (depth of field).</div>
+        <div class="var-scale">
+          <div class="scale-row">
+            <span class="scale-label">More light</span>
+            <div class="scale-bar reverse"></div>
+            <span class="scale-label">Less light</span>
+          </div>
+          <div class="scale-ends"><span>f/1.4 &nbsp; f/2 &nbsp; f/2.8</span><span>f/8 &nbsp; f/11 &nbsp; f/16</span></div>
+          <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--text-2); margin-top:8px;">
+            <span>Shallow focus</span><span>Deep focus</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="var-card">
+      <div class="var-header">
+        <div class="var-number">Variable 2</div>
+        <div class="var-name">Shutter Speed</div>
+      </div>
+      <div class="var-body">
+        <div class="var-control">Where to find it: shutter speed dial on top of camera</div>
+        <div class="var-desc">How long the shutter stays open. Controls how motion is recorded -- frozen sharp or blurred by movement.</div>
+        <div class="var-scale">
+          <div class="scale-row">
+            <span class="scale-label">More light</span>
+            <div class="scale-bar reverse"></div>
+            <span class="scale-label">Less light</span>
+          </div>
+          <div class="scale-ends"><span>1s &nbsp; 1/15 &nbsp; 1/60</span><span>1/250 &nbsp; 1/500 &nbsp; 1/1000</span></div>
+          <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--text-2); margin-top:8px;">
+            <span>Motion blur</span><span>Frozen motion</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="var-card">
+      <div class="var-header">
+        <div class="var-number">Variable 3</div>
+        <div class="var-name">ISO</div>
+      </div>
+      <div class="var-body">
+        <div class="var-control">Where to find it: set when you load film -- fixed for the roll</div>
+        <div class="var-desc">Film sensitivity to light. Higher ISO works in lower light but produces more grain. This course uses Tri-X 400 all semester.</div>
+        <div class="var-scale">
+          <div class="scale-row">
+            <span class="scale-label">More sensitive</span>
+            <div class="scale-bar"></div>
+            <span class="scale-label">Less sensitive</span>
+          </div>
+          <div class="scale-ends"><span>ISO 1600 &nbsp; ISO 800</span><span>ISO 200 &nbsp; ISO 100</span></div>
+          <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--text-2); margin-top:8px;">
+            <span>More grain</span><span>Cleaner image</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="section-label" style="margin-top: 32px;">Shooting modes</p>
+
+  <div class="modes">
+    <div class="modes-title">Not all cameras are fully manual. Here is what the mode dial means.</div>
+
+    <div class="mode-row">
+      <div class="mode-badge">M</div>
+      <div class="mode-content">
+        <div class="mode-name">Manual</div>
+        <div class="mode-desc">You set both aperture and shutter speed. The meter tells you if you are balanced. You decide whether to listen to it.</div>
+        <div class="mode-use">All cameras in this course are used in Manual mode.</div>
+      </div>
+    </div>
+
+    <div class="mode-row">
+      <div class="mode-badge">Av</div>
+      <div class="mode-content">
+        <div class="mode-name">Aperture Priority</div>
+        <div class="mode-desc">You set the aperture. The camera sets the shutter speed to match the light. Use when depth of field is your priority.</div>
+        <div class="mode-use">Good for portraits and landscapes where focus range matters most.</div>
+      </div>
+    </div>
+
+    <div class="mode-row">
+      <div class="mode-badge">Tv</div>
+      <div class="mode-content">
+        <div class="mode-name">Shutter Priority</div>
+        <div class="mode-desc">You set the shutter speed. The camera sets the aperture. Use when freezing or blurring motion is your priority.</div>
+        <div class="mode-use">Good for sports, action, or intentional blur.</div>
+      </div>
+    </div>
+
+    <div class="mode-row">
+      <div class="mode-badge gray">P</div>
+      <div class="mode-content">
+        <div class="mode-name">Program / Auto</div>
+        <div class="mode-desc">The camera sets everything. Not used in this course -- it removes the decisions that make photography expressive.</div>
+        <div class="mode-use">You will not use this mode this semester.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="film-note">
+    <p><strong>This course uses one film stock all semester:</strong> Kodak Tri-X 400, rated at ISO 400, developed in Kodak D-76 diluted 1:1 at 20°C for 10 minutes. Standardizing on one film removes variables so you can clearly see cause and effect in your exposures.</p>
+  </div>
+
+</main>
+
+</body>
+</html>

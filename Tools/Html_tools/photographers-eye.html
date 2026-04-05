@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Photographer's Eye — Szarkowski</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#F4F2EE;--surface:#FFFFFF;--text:#121212;--text-2:#4A4A4A;
+    --divider:#E2E0DA;--accent:#2F4A3F;
+    --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);font-family:var(--sans);color:var(--text);font-size:14px;line-height:1.6;}
+  ::-webkit-scrollbar{width:5px;}
+  ::-webkit-scrollbar-thumb{background:var(--divider);border-radius:3px;}
+
+  .header{background:var(--surface);border-bottom:1px solid var(--divider);padding:16px 24px;position:sticky;top:0;z-index:100;}
+  .header-inner{max-width:960px;margin:0 auto;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;}
+  .header h1{font-size:18px;font-weight:600;letter-spacing:-0.3px;}
+  .header-sub{font-family:var(--mono);font-size:12px;color:var(--text-2);}
+
+  .tabs-wrap{background:var(--surface);border-bottom:1px solid var(--divider);position:sticky;top:57px;z-index:99;}
+  .tabs{max-width:960px;margin:0 auto;display:flex;overflow-x:auto;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{flex-shrink:0;padding:12px 18px;font-family:var(--sans);font-size:13px;font-weight:500;color:var(--text-2);cursor:pointer;border:none;background:transparent;border-bottom:2px solid transparent;transition:color 0.15s,border-color 0.15s;white-space:nowrap;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  .main{max-width:960px;margin:0 auto;padding:32px 24px;}
+  .concept-panel{display:none;}
+  .concept-panel.active{display:block;}
+
+  .concept-header{background:var(--surface);border:1px solid var(--divider);border-radius:4px;padding:20px;margin-bottom:20px;}
+  .concept-label{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-2);margin-bottom:8px;}
+  .concept-title{font-size:22px;font-weight:600;letter-spacing:-0.3px;margin-bottom:12px;}
+  .concept-gloss{font-size:14px;line-height:1.7;margin-bottom:16px;}
+  .szarkowski-quote{border-left:3px solid var(--accent);padding:10px 16px;background:var(--bg);border-radius:0 3px 3px 0;font-size:13px;color:var(--text-2);font-style:italic;line-height:1.6;}
+  .szarkowski-quote cite{display:block;margin-top:6px;font-style:normal;font-family:var(--mono);font-size:10px;letter-spacing:0.04em;color:var(--accent);}
+
+  .section-label{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-2);margin-bottom:12px;margin-top:24px;}
+
+  .image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+  .image-card{background:var(--surface);border:1px solid var(--divider);border-radius:4px;overflow:hidden;cursor:pointer;transition:border-color 0.15s;}
+  .image-card:hover{border-color:var(--accent);}
+  .image-card img{width:100%;aspect-ratio:4/3;object-fit:cover;object-position:top center;display:block;background:var(--divider);}
+  .image-card-body{padding:12px;}
+  .image-photographer{font-family:var(--mono);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--accent);margin-bottom:4px;}
+  .image-title{font-size:13px;font-weight:500;margin-bottom:6px;line-height:1.4;}
+  .image-why{font-size:12px;color:var(--text-2);line-height:1.5;}
+  .image-year{font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:6px;}
+  .source-note{margin-top:16px;font-family:var(--mono);font-size:10px;color:var(--text-2);line-height:1.6;padding-top:12px;border-top:1px solid var(--divider);}
+
+  .lightbox{display:none;position:fixed;inset:0;background:rgba(18,18,18,0.92);z-index:200;align-items:center;justify-content:center;padding:24px;}
+  .lightbox.open{display:flex;}
+  .lightbox-inner{background:var(--surface);border-radius:4px;max-width:820px;width:100%;max-height:90vh;overflow-y:auto;}
+  .lightbox-img-wrap{background:#111;display:flex;align-items:center;justify-content:center;}
+  .lightbox-img-wrap img{max-width:100%;max-height:62vh;object-fit:contain;display:block;}
+  .lightbox-body{padding:20px;}
+  .lightbox-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+  .lightbox-photographer{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--accent);margin-bottom:4px;}
+  .lightbox-title{font-size:16px;font-weight:600;}
+  .lightbox-close{background:transparent;border:1px solid var(--divider);border-radius:3px;width:32px;height:32px;cursor:pointer;font-size:18px;color:var(--text-2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .lightbox-why{font-size:14px;line-height:1.7;margin-bottom:12px;}
+  .lightbox-meta{font-family:var(--mono);font-size:11px;color:var(--text-2);}
+
+  @media(max-width:600px){
+    .main{padding:20px 16px;}
+    .image-grid{grid-template-columns:1fr 1fr;}
+    .tab{padding:10px 12px;font-size:12px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <h1>The Photographer's Eye</h1>
+    <span class="header-sub">Szarkowski &middot; MoMA, 1966</span>
+  </div>
+</div>
+
+<div class="tabs-wrap">
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-i="0">The Thing Itself</button>
+    <button class="tab" data-i="1">The Detail</button>
+    <button class="tab" data-i="2">The Frame</button>
+    <button class="tab" data-i="3">Time</button>
+    <button class="tab" data-i="4">Vantage Point</button>
+  </div>
+</div>
+
+<div class="main" id="main"></div>
+
+<div class="lightbox" id="lb">
+  <div class="lightbox-inner">
+    <div class="lightbox-img-wrap"><img id="lb-img" src="" alt=""></div>
+    <div class="lightbox-body">
+      <div class="lightbox-top">
+        <div>
+          <div class="lightbox-photographer" id="lb-ph"></div>
+          <div class="lightbox-title" id="lb-ti"></div>
+        </div>
+        <button class="lightbox-close" id="lb-x">&#x2715;</button>
+      </div>
+      <div class="lightbox-why" id="lb-why"></div>
+      <div class="lightbox-meta" id="lb-meta"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// LOC IIIF Image API — serves any resolution on demand from master files.
+// Format: https://tile.loc.gov/image-services/iiif/service:pnp:[path]/full/[width],/0/default.jpg
+// where path uses colons instead of slashes: ppmsc:00200:00242
+// Thumbnail: 600px wide. Lightbox: 1200px wide.
+// All FSA/OWI: US government works, no known copyright restrictions.
+
+var IIIF = "https://tile.loc.gov/image-services/iiif/service:pnp:";
+
+function img(iiifPath, locUrl, ph, ti, yr, why) {
+  var base = IIIF + iiifPath + "/full/";
+  return {
+    t: base + "600,/0/default.jpg",
+    f: base + "1200,/0/default.jpg",
+    loc: locUrl, ph: ph, ti: ti, yr: yr, why: why
+  };
+}
+
+var DATA = [
+  {
+    title: "The Thing Itself",
+    gloss: "Photography deals with the actual. The camera doesn't invent or compose from imagination — it selects from what exists. Szarkowski's insight is that this constraint is not a limitation but the medium's defining power. The photograph makes the subject undeniable. It says: this existed, at this moment, in this light.",
+    quote: "The first thing that the photographer learned was that photography dealt with the actual; he had not only to accept this fact, but to treasure it.",
+    images: [
+      img("ppmsc:00200:00242", "https://www.loc.gov/item/2017762295/",
+          "Walker Evans", "Washstand in the Dog Run, Hale County, Alabama", "1935–36",
+          "Evans presents objects with complete neutrality — no drama, no rhetoric. The washstand simply is. This is what Szarkowski means: the photograph makes the actual undeniable."),
+      img("ppmsc:00200:00244", "https://www.loc.gov/item/2017762300/",
+          "Walker Evans", "Floyd Burroughs, Sharecropper, Hale County, Alabama", "1935–36",
+          "A portrait that refuses sentimentality. Evans treasures the actual — the specific face, the specific light — without editorializing."),
+      img("fsa:8b29000:8b29500:8b29516v", "https://www.loc.gov/item/2017762891/",
+          "Dorothea Lange", "Migrant Mother, Nipomo, California", "1936",
+          "The subject is so fully present that the photograph becomes the remembered reality. The thing itself, made permanent."),
+      img("ppmsc:00200:00241", "https://www.loc.gov/item/2017760335/",
+          "Arthur Rothstein", "Farmer and Sons Walking in a Dust Storm, Cimarron County, Oklahoma", "1936",
+          "Three people in a specific moment. The photograph doesn't argue or explain — it presents. The actual world, undeniable.")
+    ]
+  },
+  {
+    title: "The Detail",
+    gloss: "The camera cannot tell a whole story in a single frame. What it can do is isolate — pull a fragment from the continuous flow of the world and make it stand for something larger. The detail is not decoration. It is the unit of photographic meaning. A part stands for a whole, a shadow suggests a presence, a texture carries a world.",
+    quote: "The camera's ability to crop means that a badge, a corner of a wall, or a shadow can be enough to suggest an entire structure or emotion. The detail is a fundamental unit of photographic grammar.",
+    images: [
+      img("fsa:8c50000:8c52000:8c52457", "https://www.loc.gov/item/2017762401/",
+          "Walker Evans", "Church Interior, Alabama or Tennessee", "1936",
+          "Evans isolates the interior of a rural church — worn wood, plain benches. A detail that contains an entire community's spiritual life without explaining it."),
+      img("ppmsc:00200:00236", "https://www.loc.gov/item/2017762237/",
+          "Walker Evans", "Houses and Billboards, Atlanta", "1936",
+          "The billboard fragment against the houses. A detail pulled from the American landscape that stands for an entire collision of values."),
+      img("ppmsc:00200:00241", "https://www.loc.gov/item/2017760335/",
+          "Arthur Rothstein", "Farmer and Sons in Dust Storm, Cimarron County, Oklahoma", "1936",
+          "Rothstein isolates a human-scale detail within catastrophe. Three figures, a shed, a wall of dust — the specific against the vast."),
+      img("ppmsc:00200:00244", "https://www.loc.gov/item/2017762300/",
+          "Walker Evans", "Floyd Burroughs, Hale County, Alabama", "1935–36",
+          "Evans isolates the face and worn fabric — two details that together carry a whole life. The detail is not decoration; it is the grammar of the image.")
+    ]
+  },
+  {
+    title: "The Frame",
+    gloss: "The edges of the photograph are not a border — they are an active decision. Everything inside the frame is included; everything outside is excluded. That line between in and out is where meaning is constructed. Unlike painters who build from nothing, photographers eliminate from everything.",
+    quote: "The central act of photography, the act of choosing and eliminating, forces a concentration on the picture edge — the line that separates in from out.",
+    images: [
+      img("ppmsc:00200:00238", "https://www.loc.gov/item/2017759127/",
+          "Dorothea Lange", "Filipinos Cutting Lettuce, Salinas, California", "1935",
+          "The frame cuts figures at the edges, extending the labor beyond the photograph's borders. What Lange excludes is as active as what she includes."),
+      img("ppmsc:00200:00239", "https://www.loc.gov/item/2017762372/",
+          "Walker Evans", "Roadside Stand Near Birmingham, Alabama", "1936",
+          "The frame isolates this stand from its surroundings, creating relationships between signs and structure that only exist within the photograph's edges."),
+      img("fsa:8c10000:8c11000:8c11683", "https://www.loc.gov/item/2017802584/",
+          "Marion Post Wolcott", "Center of Town, Woodstock, Vermont — Snowy Night", "1940",
+          "Wolcott's frame organizes the town into a composition that feels inevitable. What is excluded defines what the frame argues."),
+      img("ppmsc:00200:00241", "https://www.loc.gov/item/2017760335/",
+          "Arthur Rothstein", "Farmer and Sons in Dust Storm, Cimarron County, Oklahoma", "1936",
+          "The frame cuts the dust storm at the top, creating pressure from above. Rothstein's rectangle organizes chaos into a readable composition.")
+    ]
+  },
+  {
+    title: "Time",
+    gloss: "Every photograph describes a specific parcel of time — and only photography does this. A painting accumulates marks over hours or days; a photograph is made in a fraction of a second. Photographers discovered they could make time visible. Cartier-Bresson's decisive moment is only one version of this — the visual moment, not necessarily the dramatic one.",
+    quote: "Every photograph is a certificate of presence. The decisive moment is less a dramatic climax than a visual one — a moment when the elements fall into place.",
+    images: [
+      img("ppmsc:00200:00241", "https://www.loc.gov/item/2017760335/",
+          "Arthur Rothstein", "Farmer and Sons Walking in a Dust Storm, Cimarron County, Oklahoma", "1936",
+          "A fraction of a second that contains the entire Dust Bowl. The shutter freezes a specific moment that stands for years of catastrophe."),
+      img("fsa:8b29000:8b29500:8b29516v", "https://www.loc.gov/item/2017762891/",
+          "Dorothea Lange", "Migrant Mother, Nipomo, California", "1936",
+          "Time accumulates in this face. Lange selects the visual moment when exhaustion and determination become simultaneously visible."),
+      img("ppmsc:00200:00244", "https://www.loc.gov/item/2017762300/",
+          "Walker Evans", "Floyd Burroughs, Hale County, Alabama", "1935–36",
+          "A still portrait that contains a long life. The tension between duration and the frozen instant is part of what you read."),
+      img("ppmsc:00200:00238", "https://www.loc.gov/item/2017759127/",
+          "Dorothea Lange", "Filipinos Cutting Lettuce, Salinas, California", "1935",
+          "The bodies frozen mid-motion. Lange selects the visual moment when the rhythm of labor becomes visible as pure form.")
+    ]
+  },
+  {
+    title: "Vantage Point",
+    gloss: "Where you put the camera changes everything. Shoot from above and people become geography. Shoot from below and a subject becomes monumental. Photographers discovered — often by necessity — that abandoning the normal eye-level view revealed things invisible from the conventional position. Vantage point is not a trick; it is a statement about how the photographer understands the subject.",
+    quote: "Photography has taught us to see from the unexpected vantage point, and has shown us pictures that give the sense of the scene, while withholding its narrative meaning.",
+    images: [
+      img("ppmsc:00200:00238", "https://www.loc.gov/item/2017759127/",
+          "Dorothea Lange", "Filipinos Cutting Lettuce, Salinas, California", "1935",
+          "Lange shoots from standing height looking down the row — the vantage point turns labor into pure line and repetition. Two feet lower makes a completely different argument."),
+      img("ppmsc:00200:00241", "https://www.loc.gov/item/2017760335/",
+          "Arthur Rothstein", "Farmer and Sons in Dust Storm, Cimarron County, Oklahoma", "1936",
+          "Ground level, looking slightly up. This vantage point gives the figures weight against the wall of dust — a higher angle would make them small and helpless."),
+      img("ppmsc:00200:00244", "https://www.loc.gov/item/2017762300/",
+          "Walker Evans", "Floyd Burroughs, Hale County, Alabama", "1935–36",
+          "Evans shoots at eye level, straight on — the vantage point of an equal, not a documentarian looking down. A political decision made with camera placement."),
+      img("ppmsc:00200:00242", "https://www.loc.gov/item/2017762295/",
+          "Walker Evans", "Washstand in the Dog Run, Hale County, Alabama", "1935–36",
+          "Evans positions his camera at the height of the objects themselves. The vantage point grants the subject the same dignity as a portrait.")
+    ]
+  }
+];
+
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+function build(){
+  var main=document.getElementById("main");
+  DATA.forEach(function(c,ci){
+    var cards=c.images.map(function(d,ii){
+      return '<div class="image-card" onclick="openLB('+ci+','+ii+')">' +
+        '<img src="'+esc(d.t)+'" alt="'+esc(d.ti)+'" loading="'+(ci===0?"eager":"lazy")+'" onerror="this.style.opacity=0.15">' +
+        '<div class="image-card-body">' +
+          '<div class="image-photographer">'+esc(d.ph)+'</div>' +
+          '<div class="image-title">'+esc(d.ti)+'</div>' +
+          '<div class="image-why">'+esc(d.why.substring(0,100))+(d.why.length>100?"&hellip;":"")+'</div>' +
+          '<div class="image-year">'+esc(d.yr)+'</div>' +
+        '</div></div>';
+    }).join("");
+
+    var p=document.createElement("div");
+    p.className="concept-panel"+(ci===0?" active":"");
+    p.id="p"+ci;
+    p.innerHTML=
+      '<div class="concept-header">' +
+        '<div class="concept-label">Szarkowski &middot; The Photographer\'s Eye</div>' +
+        '<div class="concept-title">'+esc(c.title)+'</div>' +
+        '<div class="concept-gloss">'+esc(c.gloss)+'</div>' +
+        '<div class="szarkowski-quote">'+esc(c.quote)+
+          '<cite>&mdash; John Szarkowski, The Photographer\'s Eye (MoMA, 1966)</cite>' +
+        '</div>' +
+      '</div>' +
+      '<div class="section-label">Examples</div>' +
+      '<div class="image-grid">'+cards+'</div>' +
+      '<p class="source-note">FSA/OWI Collection &mdash; Library of Congress Prints &amp; Photographs Division. U.S. government works, no known copyright restrictions. Click any image to enlarge.</p>';
+    main.appendChild(p);
+  });
+}
+
+function openLB(ci,ii){
+  var d=DATA[ci].images[ii];
+  var el=document.getElementById("lb-img");
+  el.src=d.f; el.onerror=function(){this.src=d.t;};
+  document.getElementById("lb-ph").textContent=d.ph;
+  document.getElementById("lb-ti").textContent=d.ti;
+  document.getElementById("lb-why").textContent=d.why;
+  document.getElementById("lb-meta").innerHTML=esc(d.yr)+
+    ' &nbsp;&middot;&nbsp; <a href="'+esc(d.loc)+'" target="_blank" style="color:var(--accent);text-decoration:none;">Library of Congress &#8599;</a>';
+  document.getElementById("lb").classList.add("open");
+}
+
+function closeLB(){
+  document.getElementById("lb").classList.remove("open");
+  document.getElementById("lb-img").src="";
+}
+
+build();
+document.getElementById("tabs").addEventListener("click",function(e){
+  if(!e.target.dataset.i)return;
+  var idx=+e.target.dataset.i;
+  document.querySelectorAll(".tab").forEach(function(t,i){t.classList.toggle("active",i===idx);});
+  document.querySelectorAll(".concept-panel").forEach(function(p,i){p.classList.toggle("active",i===idx);});
+});
+document.getElementById("lb-x").addEventListener("click",closeLB);
+document.getElementById("lb").addEventListener("click",function(e){if(e.target===this)closeLB();});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeLB();});
+</script>
+</body>
+</html>
