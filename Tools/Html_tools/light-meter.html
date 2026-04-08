@@ -181,7 +181,7 @@ input[type=range]::-webkit-slider-thumb {
     <div>
       <div class="lbl" style="margin-bottom:4px;">Light condition</div>
       <div class="scene-name" id="sname">Bright overcast</div>
-      <div class="scene-hint" id="shint">EV 11 · Try f/8 as a starting point</div>
+      <div class="scene-hint" id="shint">EV 11 · Try f/8, 1/125, ISO 400</div>
     </div>
     <div class="scene-slider-wrap">
       <input type="range" min="0" max="4" value="2" step="1" id="sl-scene">
@@ -288,33 +288,15 @@ var S  = [1000,500,250,125,60,30,15,8,4];
 var SL = ['1/1000','1/500','1/250','1/125','1/60','1/30','1/15','1/8','1/4'];
 var I  = [100,200,400,800];
 
-// Scene EV values calibrated so that correct settings read 0.
-// EV formula: log2(1 / (N^2 * t)) + log2(ISO/100)
-// With S[si] as denominator: t = 1/S[si], so 1/t = S[si]
-// EV = log2(S[si] / N^2) + log2(ISO/100)
-// Check: f/8, 1/125, ISO 400 → log2(125/64) + log2(4) = 0.965 + 2 = 2.965
-// So scene EVs must be on this same scale.
-// Bright overcast correct at f/8, 1/125, ISO 400 → scene ev = 2.965 ≈ 3
-// Bright sun correct at Sunny 16: f/16, 1/400 ≈ 1/500, ISO 400
-//   → log2(500/256) + log2(4) = 0.966 + 2 = 2.966 — same! That can't be right.
-// 
-// CORRECT APPROACH: use stop-based offset from a reference.
-// At f/8, 1/125, ISO 400: this IS correct for EV11 bright overcast.
-// Each stop of aperture closing (f/8→f/11→f/16) = -1 stop light = should read -1, -2.
-// Use aperture index directly: stops_from_reference = apIdx - 5 (f/8 is index 5)
-// Plus shutter: stops = shIdx - 3 (1/125 is index 3, slower=more light)  
-// Plus ISO: stops = isoIdx - 2 (ISO 400 is index 2, higher=more sensitive=brighter)
-// Total exposure offset from correct: (shIdx-3) - (apIdx-5) + (isoIdx-2)
-// = shIdx - apIdx + isoIdx + 0
-// diff > 0: more light than needed = overexposed
-// diff < 0: less light than needed = underexposed
-
+// Scene brightness offset in stops relative to bright overcast (EV 11).
+// Brighter scene = positive offset = same camera settings = overexposed.
+// Darker scene = negative offset = same camera settings = underexposed.
 var SC = [
-  {name:'Bright sun',      ev:4,  hint:'EV 15  ·  Sunny 16: try f/16, 1/ISO'},
-  {name:'Light overcast',  ev:2,  hint:'EV 13  ·  Try f/11 as a starting point'},
-  {name:'Bright overcast', ev:0,  hint:'EV 11  ·  Try f/8, 1/125, ISO 400'},
-  {name:'Open shade',      ev:-1, hint:'EV 10  ·  Try f/5.6 as a starting point'},
-  {name:'Heavy overcast',  ev:-2, hint:'EV 9   ·  Try f/4 or open up further'}
+  {name:'Bright sun',      sceneStops: 4,  hint:'EV 15  ·  Sunny 16: try f/16, 1/ISO'},
+  {name:'Light overcast',  sceneStops: 2,  hint:'EV 13  ·  Try f/11 as a starting point'},
+  {name:'Bright overcast', sceneStops: 0,  hint:'EV 11  ·  Try f/8, 1/125, ISO 400'},
+  {name:'Open shade',      sceneStops:-1,  hint:'EV 10  ·  Try f/5.6 as a starting point'},
+  {name:'Heavy overcast',  sceneStops:-2,  hint:'EV 9   ·  Try f/4 or open up further'}
 ];
 
 function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
@@ -349,18 +331,19 @@ function update() {
   document.getElementById('shint').textContent = sc.hint;
   document.getElementById('scene-marker').style.left = (sci/4*100)+'%';
 
-  // Stop-based exposure calculation relative to correct reference (f/8, 1/125, ISO 400).
-  // Closing aperture (higher fi) = less light = negative contribution.
-  // Slower shutter (higher si) = more light = positive contribution.
-  // Higher ISO (higher ii) = more sensitive = positive contribution.
-  // Reference: fi=5 (f/8), si=3 (1/125), ii=2 (ISO 400) all contribute 0.
+  // Camera stops relative to the reference (f/8, 1/125, ISO 400) that is correct for EV 11.
+  // Higher fi = smaller aperture = less light = negative stops.
+  // Higher si = slower shutter = more light = positive stops.
+  // Higher ii = higher ISO = more sensitive = positive stops.
   var cameraStops = (si - 3) - (fi - 5) + (ii - 2);
-  // diff = camera stops above scene target. Positive = overexposed. Negative = underexposed.
-  var diff = cameraStops - sc.ev;
+
+  // diff: positive = overexposed, negative = underexposed.
+  // Brighter scene (higher sceneStops) means the same camera settings let in too much light.
+  var diff = cameraStops - sc.sceneStops;
   var cl   = clamp(diff,-2,2);
 
-  // diff > 0 overexposed: needle goes UP toward +2 (top:11%)
-  // diff < 0 underexposed: needle goes DOWN toward -2 (top:89%)
+  // diff > 0 overexposed: needle UP toward +2 (top:11%)
+  // diff < 0 underexposed: needle DOWN toward -2 (top:89%)
   needle.style.top = clamp(50-(cl/2)*39,11,89)+'%';
 
   f3o.style.background = '#E2E0DA';
