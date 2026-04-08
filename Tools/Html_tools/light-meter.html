@@ -288,9 +288,10 @@ var S  = [1000,500,250,125,60,30,15,8,4];
 var SL = ['1/1000','1/500','1/250','1/125','1/60','1/30','1/15','1/8','1/4'];
 var I  = [100,200,400,800];
 
-// Scene brightness offset in stops relative to bright overcast (EV 11).
-// Brighter scene = positive offset = same camera settings = overexposed.
-// Darker scene = negative offset = same camera settings = underexposed.
+// sceneStops: stops of light ADDED to the scene relative to bright overcast (EV 11).
+// Bright sun is 4 stops brighter, so fixed camera settings will be 4 stops overexposed.
+// Heavy overcast is 2 stops darker, so fixed camera settings will be 2 stops underexposed.
+// diff = cameraStops + sceneStops: positive = overexposed, negative = underexposed.
 var SC = [
   {name:'Bright sun',      sceneStops: 4,  hint:'EV 15  ·  Sunny 16: try f/16, 1/ISO'},
   {name:'Light overcast',  sceneStops: 2,  hint:'EV 13  ·  Try f/11 as a starting point'},
@@ -331,15 +332,15 @@ function update() {
   document.getElementById('shint').textContent = sc.hint;
   document.getElementById('scene-marker').style.left = (sci/4*100)+'%';
 
-  // Camera stops relative to the reference (f/8, 1/125, ISO 400) that is correct for EV 11.
-  // Higher fi = smaller aperture = less light = negative stops.
-  // Higher si = slower shutter = more light = positive stops.
-  // Higher ii = higher ISO = more sensitive = positive stops.
+  // Camera stops relative to reference (f/8, 1/125, ISO 400) = correct for EV 11.
+  // Closing aperture (higher fi) = less light = negative.
+  // Slower shutter (higher si) = more light = positive.
+  // Higher ISO (higher ii) = more sensitive = positive.
   var cameraStops = (si - 3) - (fi - 5) + (ii - 2);
 
-  // diff: positive = overexposed, negative = underexposed.
-  // Brighter scene (higher sceneStops) means the same camera settings let in too much light.
-  var diff = cameraStops - sc.sceneStops;
+  // Brighter scene means fixed camera settings over-expose.
+  // diff positive = overexposed. diff negative = underexposed.
+  var diff = cameraStops + sc.sceneStops;
   var cl   = clamp(diff,-2,2);
 
   // diff > 0 overexposed: needle UP toward +2 (top:11%)

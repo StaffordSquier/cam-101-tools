@@ -1,0 +1,7 @@
+var SC = [
+  {name:'Bright sun',      sceneStops:-4,  hint:'EV 15  ·  Sunny 16: try f/16, 1/ISO'},
+  {name:'Light overcast',  sceneStops:-2,  hint:'EV 13  ·  Try f/11 as a starting point'},
+  {name:'Bright overcast', sceneStops: 0,  hint:'EV 11  ·  Try f/8, 1/125, ISO 400'},
+  {name:'Open shade',      sceneStops: 1,  hint:'EV 10  ·  Try f/5.6 as a starting point'},
+  {name:'Heavy overcast',  sceneStops: 2,  hint:'EV 9   ·  Try f/4 or open up further'}
+];
