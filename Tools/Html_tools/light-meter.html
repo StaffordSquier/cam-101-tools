@@ -93,7 +93,6 @@ h1 { font-size:17px; font-weight:600; letter-spacing:-0.3px; }
 .meter-wrap {
   display:flex; flex-direction:column; align-items:center;
 }
-/* All three meter types scale to fill their container */
 .meter-box, .f3-box, .gen-box {
   width:100%; max-width:220px;
   aspect-ratio:200/280;
@@ -101,7 +100,7 @@ h1 { font-size:17px; font-weight:600; letter-spacing:-0.3px; }
   border-radius:6px; position:relative; overflow:hidden;
 }
 
-/* K1000 internals — use % positions so they scale */
+/* K1000 internals */
 .m-vline   { position:absolute; top:10%; bottom:10%; width:1px; background:var(--divider); left:30%; }
 .m-hline   { position:absolute; left:5%; right:35%; height:1px; background:var(--divider); top:50%; }
 .m-circle  { position:absolute; width:40%; aspect-ratio:1; border-radius:50%; border:1px solid var(--divider); left:10%; top:36%; }
@@ -144,7 +143,6 @@ h1 { font-size:17px; font-weight:600; letter-spacing:-0.3px; }
 .big { font-family:var(--mono); font-size:22px; font-weight:500; }
 .ends { display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--text2); margin-top:4px; }
 
-/* Sliders — bigger touch targets */
 input[type=range] {
   width:100%; -webkit-appearance:none; height:4px; border-radius:2px;
   outline:none; cursor:pointer; accent-color:var(--accent);
@@ -169,25 +167,17 @@ input[type=range]::-webkit-slider-thumb {
 .sh { font-size:14px; font-weight:500; margin-bottom:3px; }
 .sd { font-family:var(--mono); font-size:12px; color:var(--text2); line-height:1.5; }
 
-/* ── MOBILE — single column ── */
 @media (max-width:600px) {
   h1 { font-size:15px; }
   .tbtn { font-size:12px; height:44px; }
   .main { padding:16px 12px 28px; }
-
-  .row {
-    grid-template-columns:1fr;
-  }
-
-  /* On mobile, meter and controls sit side by side within their cards */
+  .row { grid-template-columns:1fr; }
   .meter-wrap { flex-direction:row; align-items:flex-start; gap:16px; }
   .meter-box, .f3-box, .gen-box { max-width:160px; }
-
   .big { font-size:20px; }
   input[type=range]::-webkit-slider-thumb { width:30px; height:30px; }
 }
 
-/* ── TABLET ── */
 @media (min-width:601px) and (max-width:760px) {
   .row { grid-template-columns:1fr 1fr; }
   .meter-box, .f3-box, .gen-box { max-width:180px; }
@@ -328,6 +318,8 @@ var FL = ['1.4','2','2.8','4','5.6','8','11','16'];
 var S  = [1000,500,250,125,60,30,15,8,4];
 var SL = ['1/1000','1/500','1/250','1/125','1/60','1/30','1/15','1/8','1/4'];
 var I  = [100,200,400,800];
+// Scene EV values at ISO 100. The formula EV = log2(N^2 * S_denom * 100 / ISO)
+// produces EV ~11 at f/8, 1/125, ISO 400 for bright overcast — values tuned to match.
 var SC = [
   {name:'Bright sun',      ev:15, hint:'EV 15  ·  Sunny 16: try f/16, 1/400'},
   {name:'Light overcast',  ev:13, hint:'EV 13  ·  Try f/11 as a starting point'},
@@ -368,10 +360,12 @@ function update() {
   document.getElementById('shint').textContent = sc.hint;
   document.getElementById('scene-marker').style.left = (sci/4*100)+'%';
 
-  var ev   = Math.log2(F[fi]*F[fi]*S[si]*100/I[ii]);
+  // N^2 in denominator: bigger f-number = less light = lower EV = underexposed vs scene
+  var ev   = Math.log2(S[si]*100/(F[fi]*F[fi]*I[ii]/100));
   var diff = ev - sc.ev;
   var cl   = clamp(diff,-2,2);
 
+  // diff > 0: camera EV above scene = overexposed = needle toward +2 (top)
   needle.style.top = clamp(50-(cl/2)*39,11,89)+'%';
 
   f3o.style.background = '#E2E0DA';
