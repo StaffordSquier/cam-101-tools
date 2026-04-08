@@ -385,11 +385,9 @@ var shSl = document.getElementById('shSl');
 
 function calcEV(apI, shI, iso_idx) {
   var N = AP_VAL[apI], t = SH_VAL[shI], S = ISO[iso_idx];
-  // Correct EV formula: more light = higher EV.
-  // Wider aperture (smaller N) = more light = higher EV.
-  // Slower shutter (larger t) = more light = higher EV.
-  // Higher ISO (larger S) = more sensitive = higher EV.
-  return Math.round(Math.log2(t / (N * N)) + Math.log2(S / 100));
+  // Original formula — produces values on same scale as ambientEV presets.
+  // Closing aperture (larger N) increases this value, so we negate diff below.
+  return Math.round(Math.log2((N * N) / t) - Math.log2(S / 100));
 }
 function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
 function setBg(el, p) { el.style.setProperty('--p', p + '%'); }
@@ -542,7 +540,9 @@ function update() {
   document.getElementById('isoVal').textContent = ISO[isoI];
 
   var ev   = calcEV(apI, shI, isoI);
-  var diff = ev - ambientEV;
+  // Negate diff: the formula grows as aperture closes (wrong direction),
+  // so flipping the sign makes closing aperture read underexposed (correct).
+  var diff = -(ev - ambientEV);
 
   var ndl = document.getElementById('needle');
   ndl.style.left = clamp(50 + (diff/6)*40, 5, 95) + '%';
