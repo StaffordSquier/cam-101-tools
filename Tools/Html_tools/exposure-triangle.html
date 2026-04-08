@@ -22,7 +22,6 @@
 }
 *, *::before, *::after { box-sizing: border-box; }
 
-/* Full viewport fill — no scrolling on html/body */
 html, body {
   margin: 0; padding: 0;
   height: 100%; width: 100%;
@@ -33,7 +32,6 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Outer shell fills everything */
 .shell {
   display: flex;
   flex-direction: column;
@@ -42,7 +40,6 @@ html, body {
   overflow: hidden;
 }
 
-/* ── HEADER — fixed at top, never scrolls ── */
 header {
   flex-shrink: 0;
   background: var(--surface);
@@ -65,7 +62,6 @@ header h1 { font-size: 16px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 .mbtn:last-child { border-right: none; }
 .mbtn.active { background: var(--accent); color: #fff; }
 
-/* ── BODY — fills remaining height, split into two panes ── */
 .body {
   flex: 1;
   display: flex;
@@ -74,7 +70,6 @@ header h1 { font-size: 16px; font-weight: 600; letter-spacing: -.3px; margin: 0;
   overflow: hidden;
 }
 
-/* ── TRIANGLE PANE — left on desktop, top on mobile ── */
 .tri-panel {
   display: flex;
   flex-direction: column;
@@ -84,7 +79,7 @@ header h1 { font-size: 16px; font-weight: 600; letter-spacing: -.3px; margin: 0;
   background: var(--bg);
   border-right: 1px solid var(--div);
   flex: 1;
-  overflow: hidden; /* never scrolls */
+  overflow: hidden;
 }
 
 #triSvg {
@@ -98,7 +93,6 @@ header h1 { font-size: 16px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 }
 .cen-ok { animation: pulse 1.8s ease-in-out infinite; }
 
-/* ── RECIPROCITY CALLOUT ── */
 .recip {
   width: 100%; max-width: 460px; margin-top: 10px;
   padding: 9px 14px; background: var(--surface);
@@ -108,7 +102,6 @@ header h1 { font-size: 16px; font-weight: 600; letter-spacing: -.3px; margin: 0;
 }
 .recip strong { color: var(--accent); font-family: var(--mono); font-weight: 600; }
 
-/* ── AMBIENT ACCORDION ── */
 .ambient {
   width: 100%; max-width: 460px;
   background: var(--surface); border: 1px solid var(--div);
@@ -143,7 +136,6 @@ input.asl::-webkit-slider-thumb {
   border-radius: 50%; background: var(--surface); cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.22);
 }
 
-/* ── METER BAR ── */
 .meter-bar {
   background: var(--surface); border: 1px solid var(--div);
   padding: 10px 16px 12px; flex-shrink: 0;
@@ -155,13 +147,12 @@ input.asl::-webkit-slider-thumb {
 .meter-ndl { position: absolute; top: -8px; width: 3px; height: 19px; background: var(--accent); border-radius: 2px; transform: translateX(-50%); transition: left .2s, background .2s; }
 .meter-ends { font-family: var(--mono); font-size: 10px; color: var(--dim); display: flex; justify-content: space-between; margin-top: 5px; }
 
-/* ── CONTROLS PANE — right on desktop, scrolls on mobile ── */
 .controls {
   width: 300px;
   flex-shrink: 0;
   background: var(--surface);
   border-left: 1px solid var(--div);
-  overflow-y: auto; /* this pane scrolls */
+  overflow-y: auto;
   display: flex; flex-direction: column;
 }
 .ctrl { padding: 16px 20px; border-bottom: 1px solid var(--div); }
@@ -204,46 +195,26 @@ input[type=range].locked { opacity: .25; pointer-events: none; }
 }
 .pill.on { opacity: 1; background: rgba(47,74,63,.08); border-color: var(--accent); color: var(--accent); }
 
-/* ── MOBILE — stack vertically, triangle fixed top, controls scroll ── */
 @media (max-width: 640px) {
   header { padding: 0 12px; min-height: 46px; }
   header h1 { font-size: 14px; }
   .sub { display: none; }
   .mbtn { font-size: 11px; padding: 0 7px; height: 30px; }
-
-  /* Stack top/bottom instead of left/right */
   .body { flex-direction: column; }
-
-  /* Triangle: fixed portion at top, NEVER scrolls */
   .tri-panel {
-    flex: 0 0 48vh; /* exactly 48% of viewport height */
+    flex: 0 0 48vh;
     border-right: none;
     border-bottom: 2px solid var(--div);
     padding: 10px 14px;
     justify-content: center;
     overflow: hidden;
   }
-
-  #triSvg {
-    max-height: 28vh;
-    flex-shrink: 0;
-  }
-
+  #triSvg { max-height: 28vh; flex-shrink: 0; }
   .recip   { margin-top: 5px; padding: 6px 10px; font-size: 11px; }
   .ambient { margin-top: 5px; }
   .ambient-hdr { padding: 6px 10px; }
   .meter-bar { margin-top: 5px; padding: 7px 12px 9px; }
-
-  /* Controls: fills remaining space and SCROLLS */
-  .controls {
-    width: 100%;
-    flex: 1;
-    border-left: none;
-    border-top: none;
-    overflow-y: auto;
-  }
-
-  /* Bigger touch targets */
+  .controls { width: 100%; flex: 1; border-left: none; border-top: none; overflow-y: auto; }
   input[type=range]::-webkit-slider-thumb { width: 30px; height: 30px; }
   input.asl::-webkit-slider-thumb { width: 26px; height: 26px; }
   .isobtn { padding: 10px 12px; font-size: 13px; min-height: 44px; }
@@ -251,7 +222,6 @@ input[type=range].locked { opacity: .25; pointer-events: none; }
   .ctrl-desc { font-size: 12px; }
 }
 
-/* ── TABLET ── */
 @media (min-width: 641px) and (max-width: 900px) {
   .controls { width: 260px; }
 }
@@ -275,7 +245,6 @@ input[type=range].locked { opacity: .25; pointer-events: none; }
 
   <div class="body">
 
-    <!-- TRIANGLE PANE — fixed, never scrolls -->
     <div class="tri-panel">
       <svg id="triSvg" viewBox="-20 -30 420 340" preserveAspectRatio="xMidYMid meet">
         <defs>
@@ -337,7 +306,6 @@ input[type=range].locked { opacity: .25; pointer-events: none; }
       </div>
     </div>
 
-    <!-- CONTROLS PANE — scrolls independently -->
     <div class="controls">
       <div class="ctrl">
         <div class="ctrl-hdr">
@@ -417,7 +385,11 @@ var shSl = document.getElementById('shSl');
 
 function calcEV(apI, shI, iso_idx) {
   var N = AP_VAL[apI], t = SH_VAL[shI], S = ISO[iso_idx];
-  return Math.round(Math.log2((N * N) / t) - Math.log2(S / 100));
+  // Correct EV formula: more light = higher EV.
+  // Wider aperture (smaller N) = more light = higher EV.
+  // Slower shutter (larger t) = more light = higher EV.
+  // Higher ISO (larger S) = more sensitive = higher EV.
+  return Math.round(Math.log2(t / (N * N)) + Math.log2(S / 100));
 }
 function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
 function setBg(el, p) { el.style.setProperty('--p', p + '%'); }
