@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Film Development — CAM Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F4F2EE;
+    --surface: #FFFFFF;
+    --text: #121212;
+    --text-2: #4A4A4A;
+    --divider: #E2E0DA;
+    --accent: #2F4A3F;
+    --accent-dim: #3d5e51;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden; /* no scroll on desktop */
+  }
+
+  /* ── OUTER SHELL ── */
+  .shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--surface);
+    border: 1px solid var(--divider);
+    border-radius: 4px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .header h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  .header p {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-2);
+  }
+
+  .step-nav {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .step-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 5px 10px;
+    border-radius: 2px;
+    border: 1px solid var(--divider);
+    background: var(--bg);
+    color: var(--text-2);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .step-btn:hover { border-color: #999; color: var(--text); }
+  .step-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ── BODY: illustration + params ── */
+  .body {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ── LEFT: ILLUSTRATION ── */
+  .illustration {
+    background: #111;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .illustration svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Step title overlay at bottom of illustration */
+  .illus-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.7);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .illus-step-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .illus-step-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* ── RIGHT: PARAMS PANEL ── */
+  .params {
+    background: var(--surface);
+    border: 1px solid var(--divider);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .params-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--divider);
+    flex-shrink: 0;
+  }
+
+  .params-header-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-2);
+    margin-bottom: 4px;
+  }
+
+  .params-step-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--divider);
+    flex-shrink: 0;
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--divider);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* Param rows — scrollable if needed */
+  .params-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0;
+  }
+
+  /* Each parameter item */
+  .param-item {
+    border-bottom: 1px solid var(--divider);
+  }
+
+  .param-item:last-child { border-bottom: none; }
+
+  .param-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+    gap: 8px;
+  }
+
+  .param-row:hover { background: var(--bg); }
+
+  .param-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .param-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-2);
+  }
+
+  .param-value {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .param-toggle {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--divider);
+    flex-shrink: 0;
+    transition: transform 0.2s, color 0.2s;
+  }
+
+  .param-item.open .param-toggle {
+    transform: rotate(90deg);
+    color: var(--accent);
+  }
+
+  .param-expand {
+    display: none;
+    padding: 0 16px 12px;
+    font-family: var(--sans);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-2);
+    background: var(--bg);
+    border-top: 1px solid var(--divider);
+  }
+
+  .param-item.open .param-expand { display: block; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    gap: 8px;
+  }
+
+  .btn {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    height: 34px;
+    padding: 0 18px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid var(--divider);
+    background: transparent;
+    color: var(--text);
+    transition: all 0.15s;
+  }
+
+  .btn:hover:not(:disabled) { border-color: #999; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .btn-primary:hover:not(:disabled) { background: var(--accent-dim); }
+
+  .step-counter {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-2);
+  }
+
+  /* ── PHONE: sticky illustration, params scroll beneath ── */
+  @media (max-width: 640px) {
+    html, body {
+      overflow: auto;
+      height: auto;
+    }
+
+    .shell {
+      height: auto;
+      overflow: visible;
+      padding: 8px;
+      gap: 0;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 8px 12px;
+    }
+
+    /* Hide step nav labels on phone — too cramped */
+    .step-nav .step-btn {
+      font-size: 9px;
+      padding: 4px 7px;
+    }
+
+    .body {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    /* Illustration sticky below header */
+    .illustration {
+      position: sticky;
+      top: 52px; /* height of header */
+      z-index: 10;
+      height: 48vw; /* proportional to screen width */
+      min-height: 200px;
+      max-height: 280px;
+      border-radius: 0;
+      border-bottom: 2px solid #2F4A3F;
+    }
+
+    /* Params panel scrolls underneath illustration */
+    .params {
+      border-radius: 0;
+      border-top: none;
+      /* Add top padding so first param isn't hidden under sticky illustration */
+    }
+
+    .params-header {
+      padding: 10px 12px 8px;
+    }
+
+    .params-step-title {
+      font-size: 14px;
+    }
+
+    .param-row {
+      padding: 10px 12px;
+    }
+
+    .param-expand {
+      padding: 0 12px 10px;
+      font-size: 13px;
+    }
+
+    /* Bottom nav sticky at bottom of viewport */
+    .bottom-nav {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      background: var(--bg);
+      border-top: 1px solid var(--divider);
+      padding: 8px 12px;
+      margin-top: 0;
+    }
+  }
+
+  /* ── TABLET portrait ── */
+  @media (max-width: 900px) and (min-width: 641px) {
+    .body { grid-template-columns: 1fr 260px; }
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--divider); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1>Film Development Process</h1>
+      <p>ART 181 — B&W Film Photography</p>
+    </div>
+    <div class="step-nav" id="stepNav"></div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- LEFT: Illustration -->
+    <div class="illustration" id="illustrationPanel">
+      <svg id="illustrationSVG" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="illus-footer">
+        <span class="illus-step-name" id="illusStepName">Select a step</span>
+        <span class="illus-step-num" id="illusStepNum"></span>
+      </div>
+    </div>
+
+    <!-- RIGHT: Params -->
+    <div class="params">
+      <div class="params-header">
+        <div class="params-header-label">Step Details</div>
+        <div class="params-step-title" id="paramStepTitle">Choose a step above</div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="params-body" id="paramsBody"></div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+    <span class="step-counter" id="stepCounter">Step 0 of 7</span>
+    <button class="btn btn-primary" id="nextBtn" onclick="startOrNext()">Start →</button>
+  </div>
+
+</div>
+
+<script>
+// ─── STEP DATA ───────────────────────────────────────────────────────────────
+const steps = [
+  {
+    id: 'load',
+    label: 'Load',
+    title: 'Load Film onto Reel',
+    params: [
+      { label: 'Chemical', value: 'None', explain: 'This step has no chemistry. It is purely mechanical — film from cartridge to reel to tank. The chemistry comes next.' },
+      { label: 'Light', value: 'Complete darkness', explain: 'Film is light-sensitive until it is sealed inside the tank. The changing bag creates a portable pocket of darkness so you can do this anywhere — classroom, kitchen, parking lot. It does not matter. Inside the bag it is always dark.' },
+      { label: 'How', value: 'By touch — eyes useless', explain: 'Your hands learn this. Rock the two halves of the Paterson reel back and forth — the ball bearings grab the film edges and walk it onto the spiral. Keep the film taut but not forced. When resistance stops, the roll is on.' },
+      { label: 'Sequence', value: '① reel  ② tank  ③ lid', explain: 'Film onto reel. Reel into tank. Lid on. In that order. Once the lid is on the tank is light-safe and you can pull your arms out of the bag and turn the lights on.' },
+      { label: 'Common mistake', value: 'Kinked leader', explain: 'If the film kinks at the entry point it will not feed. Pull the leader out a few inches, trim it straight across with scissors if possible before you go into the bag, and make sure it feeds in edge-first, not corner-first.' },
+    ],
+    drawFn: drawLoad,
+  },
+  {
+    id: 'developer',
+    label: 'Developer',
+    title: 'Developer — D-76 1:1',
+    params: [
+      { label: 'Chemical', value: 'Kodak D-76 diluted 1:1', explain: 'D-76 is a fine-grain film developer. We dilute it 1 part developer to 1 part water. This slows development slightly, gives you more control, and produces excellent tonal range with Tri-X.' },
+      { label: 'Time', value: '10 minutes exactly', explain: 'Ten minutes at 20°C is the course standard for Tri-X in D-76 1:1. Do not guess. Use a timer. Thirty seconds short or long at this temperature makes a measurable difference in the negative.' },
+      { label: 'Temperature', value: '20°C / 68°F', explain: 'Temperature and time are linked. Warmer developer develops faster. We hold 20°C because it is the reference standard — all published times are based on it. Check your chemistry temperature before you pour.' },
+      { label: 'Agitation', value: '30 sec continuous, then 5 sec / 30 sec', explain: 'Continuous agitation for the first 30 seconds ensures even coverage. After that, 5 seconds of inversion every 30 seconds keeps fresh developer moving without creating edge effects from over-agitation.' },
+      { label: 'Light', value: 'Tank sealed — light safe', explain: 'Once the lid is on the Paterson tank you can handle it in room light. The pour spout lets you add and drain chemistry without ever opening the tank.' },
+    ],
+    drawFn: drawDeveloper,
+  },
+  {
+    id: 'stopbath',
+    label: 'Stop Bath',
+    title: 'Stop Bath — Ilfostop',
+    params: [
+      { label: 'Chemical', value: 'Ilfostop (diluted)', explain: 'Ilfostop is a weak acid — acetic acid in water. It neutralizes the alkaline developer instantly on contact. The moment stop bath enters the tank, development stops.' },
+      { label: 'Time', value: '30 seconds', explain: 'Thirty seconds is enough to fully neutralize the developer. More time does not hurt, but is not necessary. Drain completely before adding fixer.' },
+      { label: 'Agitation', value: 'Continuous', explain: 'Agitate continuously for the full 30 seconds. You want fresh stop bath in contact with every inch of film surface to ensure even, immediate halt of development.' },
+      { label: 'Indicator', value: 'Turns purple when exhausted', explain: 'Indicator stop bath starts yellow-orange. When it turns purple, it is done — pour it back in the bottle and mix fresh. Until it changes color it is working fine. One batch lasts many sessions.' },
+      { label: 'Why it matters', value: 'Locks in exact development time', explain: 'Without stop bath, residual developer on the film keeps working as it drains into the fixer. Stop bath gives you precision — the negative is exactly as developed as you intended, not a few seconds more.' },
+    ],
+    drawFn: drawStopBath,
+  },
+  {
+    id: 'fixer',
+    label: 'Fixer',
+    title: 'Fixer — Rapid Fixer',
+    params: [
+      { label: 'Chemical', value: 'Kodak Rapid Fixer', explain: 'Fixer dissolves the unexposed silver halide crystals remaining in the emulsion. Before fixing, the film is still light-sensitive. After fixing, it is permanently stable and can be handled in room light.' },
+      { label: 'Time', value: '5 minutes', explain: 'Rapid Fixer works in 5 minutes for film. You can test by holding the film leader to light after 2 minutes — when the milky cloudiness clears, fixing is complete. Always go the full 5 minutes for consistency.' },
+      { label: 'Agitation', value: '30 sec continuous, then 5 sec / 30 sec', explain: 'Same pattern as developer. Keeps fresh fixer in contact with the film. Under-agitated fixer leaves uneven fixing — parts of the negative will still be light sensitive.' },
+      { label: 'Light', value: 'Still sealed — wait for full fix time', explain: 'Do not open the tank before the full fix time even though fixer is working. Partially fixed film exposed to light will fog. Wait the full 5 minutes.' },
+      { label: 'Capacity', value: 'Check — fixer exhausts', explain: 'Fixer gets weaker with use. Exhausted fixer produces prints and negatives that will fade over time. We keep track of how many rolls each batch has fixed. When in doubt, mix fresh.' },
+    ],
+    drawFn: drawFixer,
+  },
+  {
+    id: 'wash',
+    label: 'Wash',
+    title: 'Wash — Running Water',
+    params: [
+      { label: 'Chemical', value: 'Running water', explain: 'Running water flushes residual fixer from the film. Fixer is acidic — any left in the emulsion will slowly bleach the silver image over years. A proper wash is what makes a negative archival.' },
+      { label: 'Time', value: '20–30 minutes', explain: '20 to 30 minutes of running water at the right temperature. Perma-Wash can shorten this dramatically — a few minutes in Perma-Wash followed by 10 minutes of water wash is equivalent to the full 30-minute wash.' },
+      { label: 'Temperature', value: '18–24°C', explain: 'Cold water causes the gelatin to contract and actually traps fixer inside. Water that is too hot can soften the emulsion and cause reticulation — a crinkled texture that cannot be fixed. Stay in the 18–24°C range.' },
+      { label: 'Light', value: 'Lid off — fully light safe', explain: 'The film is now fully fixed and light safe. Remove the lid, run water through the tank continuously. You can also pull the reel out and hang the film to check progress.' },
+      { label: 'After wash', value: 'Photo-Flo then hang dry', explain: 'After the wash add a few drops of Photo-Flo to a tank of clean water and let the film sit for 30 seconds. Photo-Flo is a wetting agent that prevents water spots. Then hang the film to dry in a dust-free spot for 1–2 hours.' },
+    ],
+    drawFn: drawWash,
+  },
+  {
+    id: 'photoflo',
+    label: 'Photo-Flo',
+    title: 'Photo-Flo — Wetting Agent',
+    params: [
+      { label: 'Chemical', value: 'Kodak Photo-Flo 200', explain: 'Photo-Flo is a surfactant — essentially a precisely engineered dish soap. A few drops in clean water is enough for an entire reel of film.' },
+      { label: 'Time', value: '30 seconds', explain: 'A brief soak is all it takes. Swirl the reel gently — do not agitate hard or you will create bubbles that dry onto the film surface.' },
+      { label: 'Why it works', value: 'Breaks water surface tension', explain: 'Water naturally beads on surfaces. If water beads on your film and dries, it leaves mineral deposits — white spots visible on your negative and any print you make from it. Photo-Flo makes the water sheet off in a smooth, even film instead of beading.' },
+      { label: 'Amount', value: 'A few drops only', explain: 'More is not better. Too much Photo-Flo leaves its own residue. The standard is about 1–2ml per liter of water, or roughly 5 drops in a Paterson tank of water.' },
+      { label: 'After', value: 'Squeegee — hang — do not touch', explain: 'Pull the film slowly off the reel. One gentle pass with a clean squeegee or two soft fingers. Then hang immediately with a clip at top and a weighted clip at bottom to prevent curling. Do not touch the emulsion side.' },
+    ],
+    drawFn: drawPhotoFlo,
+  },
+  {
+    id: 'dry',
+    label: 'Dry',
+    title: 'Hang to Dry',
+    params: [
+      { label: 'Time', value: '1–2 hours', explain: 'Room temperature drying takes 1 to 2 hours depending on humidity. Do not rush it with heat — uneven drying causes tide line marks in the emulsion that cannot be removed.' },
+      { label: 'Environment', value: 'Dust-free — no air movement', explain: 'Dust that lands on wet emulsion sticks permanently and shows on every print you make. Dry in a closed space — a closet, a bathroom with the fan off. Avoid drying near HVAC vents.' },
+      { label: 'Handling', value: 'Do not touch emulsion', explain: 'The gelatin emulsion is soft until fully dry. A fingerprint on wet emulsion is permanent. Handle by the edges only, or use clean gloves.' },
+      { label: 'When dry', value: 'Cut into strips of 5–6 frames', explain: 'Once fully dry, cut the film into strips. Standard archival sleeves hold 6 frames per strip for 35mm. Cut between frames, not through them.' },
+      { label: 'Filing', value: 'Archival sleeves — label immediately', explain: 'Write your name, date, and roll number on the sleeve before you put the film in. Negatives without labels become mysteries within a semester. This is your archive. Treat it that way.' },
+    ],
+    drawFn: drawDry,
+  },
+];
+
+// ─── ILLUSTRATION FUNCTIONS ───────────────────────────────────────────────────
+
+function drawLoad(svg) {
+  svg.setAttribute('viewBox', '0 0 400 300');
+  svg.innerHTML = `
+    <!-- Dark background -->
+    <rect width="400" height="300" fill="#111"/>
+
+    <!-- Changing bag body -->
+    <rect x="40" y="30" width="320" height="180" rx="20" fill="#1c1c1c" stroke="#2F4A3F" stroke-width="3"/>
+
+    <!-- Zipper -->
+    <rect x="50" y="30" width="300" height="12" rx="5" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
+    <line x1="55" y1="36" x2="345" y2="36" stroke="#666" stroke-width="2" stroke-dasharray="8,5"/>
+    <rect x="192" y="25" width="18" height="16" rx="4" fill="#888" stroke="#bbb" stroke-width="1.5"/>
+    <circle cx="201" cy="33" r="5" fill="#aaa"/>
+
+    <!-- Inside text -->
+    <text x="200" y="100" font-family="IBM Plex Sans" font-size="14" fill="#555" text-anchor="middle">inside the bag:</text>
+    <text x="200" y="124" font-family="IBM Plex Sans" font-size="16" font-weight="600" fill="#fff" text-anchor="middle">film cartridge → reel → tank</text>
+    <text x="200" y="148" font-family="IBM Plex Mono" font-size="13" fill="#2F4A3F" text-anchor="middle">COMPLETE DARKNESS</text>
+    <text x="200" y="168" font-family="IBM Plex Mono" font-size="11" fill="#3a3a3a" text-anchor="middle">hands work by touch alone</text>
+
+    <!-- Left sleeve -->
+    <ellipse cx="110" cy="210" rx="56" ry="22" fill="#0d0d0d" stroke="#2F4A3F" stroke-width="2.5"/>
+    <ellipse cx="110" cy="210" rx="44" ry="15" fill="#080808"/>
+    <text x="110" y="214" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#2F4A3F" text-anchor="middle">LEFT ARM</text>
+
+    <!-- Right sleeve -->
+    <ellipse cx="290" cy="210" rx="56" ry="22" fill="#0d0d0d" stroke="#2F4A3F" stroke-width="2.5"/>
+    <ellipse cx="290" cy="210" rx="44" ry="15" fill="#080808"/>
+    <text x="290" y="214" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#2F4A3F" text-anchor="middle">RIGHT ARM</text>
+
+    <!-- Sequence steps at bottom -->
+    <rect x="30" y="248" width="100" height="42" rx="5" fill="#1e1e1e" stroke="#2F4A3F" stroke-width="1.5"/>
+    <text x="80" y="266" font-family="IBM Plex Mono" font-size="16" fill="#2F4A3F" text-anchor="middle">①</text>
+    <text x="80" y="282" font-family="IBM Plex Sans" font-size="11" font-weight="600" fill="#fff" text-anchor="middle">film onto reel</text>
+
+    <text x="150" y="272" font-family="IBM Plex Mono" font-size="18" fill="#333" text-anchor="middle">→</text>
+
+    <rect x="160" y="248" width="80" height="42" rx="5" fill="#1e1e1e" stroke="#444" stroke-width="1.5"/>
+    <text x="200" y="266" font-family="IBM Plex Mono" font-size="16" fill="#888" text-anchor="middle">②</text>
+    <text x="200" y="282" font-family="IBM Plex Sans" font-size="11" font-weight="600" fill="#fff" text-anchor="middle">reel in tank</text>
+
+    <text x="248" y="272" font-family="IBM Plex Mono" font-size="18" fill="#333" text-anchor="middle">→</text>
+
+    <rect x="258" y="248" width="112" height="42" rx="5" fill="#1e1e1e" stroke="#444" stroke-width="1.5"/>
+    <text x="314" y="266" font-family="IBM Plex Mono" font-size="16" fill="#888" text-anchor="middle">③</text>
+    <text x="314" y="282" font-family="IBM Plex Sans" font-size="11" font-weight="600" fill="#2F4A3F" text-anchor="middle">lid on → light safe</text>
+  `;
+}
+
+function drawTankWithLevel(svg, levelPct, chemColor, chemOpacity, label, showBubbles) {
+  const levelY = 60 + (160 * (1 - levelPct));
+  const levelH = 160 * levelPct;
+  const bubbles = showBubbles ? `
+    <circle cx="130" cy="${levelY + levelH * 0.3}" r="4" fill="rgba(255,255,255,0.2)"><animate attributeName="cy" values="${levelY + levelH * 0.3};${levelY + 10}" dur="1.8s" repeatCount="indefinite"/></circle>
+    <circle cx="160" cy="${levelY + levelH * 0.5}" r="3" fill="rgba(255,255,255,0.15)"><animate attributeName="cy" values="${levelY + levelH * 0.5};${levelY + 10}" dur="2.2s" repeatCount="indefinite"/></circle>
+    <circle cx="190" cy="${levelY + levelH * 0.4}" r="5" fill="rgba(255,255,255,0.1)"><animate attributeName="cy" values="${levelY + levelH * 0.4};${levelY + 10}" dur="1.5s" repeatCount="indefinite"/></circle>
+  ` : '';
+
+  svg.setAttribute('viewBox', '0 0 400 300');
+  svg.innerHTML = `
+    <rect width="400" height="300" fill="#111"/>
+
+    <!-- Tank body -->
+    <rect x="100" y="50" width="200" height="180" rx="8" fill="#252525" stroke="#444" stroke-width="2"/>
+
+    <!-- Chemical level -->
+    <rect x="102" y="${levelY}" width="196" height="${levelH}" rx="4" fill="${chemColor}" opacity="${chemOpacity}" style="transition:all 0.8s ease;"/>
+
+    <!-- Lid -->
+    <rect x="90" y="36" width="220" height="20" rx="5" fill="#333" stroke="#555" stroke-width="2"/>
+    <!-- Pour spout -->
+    <rect x="178" y="18" width="44" height="22" rx="5" fill="#2a2a2a" stroke="#555" stroke-width="2"/>
+
+    <!-- Reel suggestion inside tank -->
+    <ellipse cx="200" cy="100" rx="70" ry="18" fill="none" stroke="#555" stroke-width="1.5" stroke-dasharray="5,4"/>
+    <ellipse cx="200" cy="100" rx="50" ry="12" fill="none" stroke="#444" stroke-width="1" stroke-dasharray="3,3"/>
+    <ellipse cx="200" cy="100" rx="28" ry="8" fill="none" stroke="#444" stroke-width="1" stroke-dasharray="3,3"/>
+
+    <!-- Bubbles -->
+    ${bubbles}
+
+    <!-- Temperature gauge -->
+    <rect x="316" y="60" width="12" height="160" rx="6" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+    <rect x="317" y="${60 + 160 * 0.35}" width="10" height="${160 * 0.65}" rx="5" fill="#2F4A3F"/>
+    <text x="322" y="52" font-family="IBM Plex Mono" font-size="9" fill="#666" text-anchor="middle">°C</text>
+    <text x="322" y="235" font-family="IBM Plex Mono" font-size="10" fill="#2F4A3F" text-anchor="middle">20°</text>
+
+    <!-- Agitation arrows -->
+    <text x="72" y="145" font-family="IBM Plex Mono" font-size="28" fill="#2F4A3F" text-anchor="middle" opacity="${showBubbles ? 1 : 0.3}">↕</text>
+
+    <!-- Chemical label -->
+    <rect x="100" y="248" width="200" height="30" rx="4" fill="#1a1a1a" stroke="#2F4A3F" stroke-width="1"/>
+    <text x="200" y="268" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#fff" text-anchor="middle">${label}</text>
+
+    <!-- Paterson label -->
+    <text x="200" y="294" font-family="IBM Plex Mono" font-size="8" fill="#444" text-anchor="middle">Paterson Super System 4</text>
+  `;
+}
+
+function drawDeveloper(svg) {
+  drawTankWithLevel(svg, 0.75, '#8B6535', 0.75, 'DEVELOPER — D-76 1:1 — 10 min @ 20°C', true);
+}
+
+function drawStopBath(svg) {
+  drawTankWithLevel(svg, 0.75, '#D4A017', 0.70, 'STOP BATH — Ilfostop — 30 sec', true);
+}
+
+function drawFixer(svg) {
+  drawTankWithLevel(svg, 0.75, '#3A6A9A', 0.70, 'FIXER — Rapid Fixer — 5 min', false);
+}
+
+function drawWash(svg) {
+  svg.setAttribute('viewBox', '0 0 400 300');
+  svg.innerHTML = `
+    <defs>
+      <!-- Animated water wave pattern -->
+      <pattern id="waterPattern" x="0" y="0" width="60" height="20" patternUnits="userSpaceOnUse">
+        <path d="M0 10 Q15 2 30 10 Q45 18 60 10" fill="none" stroke="rgba(91,155,213,0.4)" stroke-width="1.5"/>
+        <animateTransform attributeName="patternTransform" type="translate" from="0 0" to="-60 0" dur="1.4s" repeatCount="indefinite"/>
+      </pattern>
+
+      <!-- Animated flow lines going down — fixer washing out -->
+      <linearGradient id="flowGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#5B9BD5" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#5B9BD5" stop-opacity="0"/>
+      </linearGradient>
+
+      <!-- Clip to tank interior -->
+      <clipPath id="tankClip">
+        <rect x="102" y="52" width="196" height="176" rx="4"/>
+      </clipPath>
+    </defs>
+
+    <!-- Background -->
+    <rect width="400" height="300" fill="#111"/>
+
+    <!-- Water stream falling in from top — 5 animated streams -->
+    <line x1="160" y1="0" x2="160" y2="52" stroke="#5B9BD5" stroke-width="3" stroke-linecap="round" opacity="0.9">
+      <animate attributeName="opacity" values="0.9;0.4;0.9" dur="0.8s" repeatCount="indefinite"/>
+    </line>
+    <line x1="180" y1="0" x2="180" y2="52" stroke="#5B9BD5" stroke-width="2" stroke-linecap="round" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;0.2;0.6" dur="1.1s" repeatCount="indefinite"/>
+    </line>
+    <line x1="200" y1="0" x2="200" y2="52" stroke="#5B9BD5" stroke-width="4" stroke-linecap="round" opacity="1">
+      <animate attributeName="opacity" values="1;0.5;1" dur="0.7s" repeatCount="indefinite"/>
+    </line>
+    <line x1="220" y1="0" x2="220" y2="52" stroke="#5B9BD5" stroke-width="2" stroke-linecap="round" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;0.3;0.6" dur="0.9s" repeatCount="indefinite"/>
+    </line>
+    <line x1="240" y1="0" x2="240" y2="52" stroke="#5B9BD5" stroke-width="3" stroke-linecap="round" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.2s" repeatCount="indefinite"/>
+    </line>
+
+    <!-- "running water" label at top -->
+    <text x="200" y="12" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="#5B9BD5" text-anchor="middle">RUNNING WATER IN</text>
+
+    <!-- Tank body -->
+    <rect x="100" y="50" width="200" height="180" rx="8" fill="#1e2a33" stroke="#3A6A9A" stroke-width="2.5"/>
+
+    <!-- Animated water fill inside tank -->
+    <rect x="102" y="52" width="196" height="176" rx="4" fill="url(#waterPattern)"/>
+    <rect x="102" y="52" width="196" height="176" rx="4" fill="#2A6090" opacity="0.35"/>
+
+    <!-- Moving water surface waves inside tank -->
+    <path d="M102 80 Q130 72 160 80 Q190 88 220 80 Q250 72 298 80" fill="none" stroke="#5B9BD5" stroke-width="1.5" opacity="0.5">
+      <animateTransform attributeName="transform" type="translate" values="0 0;-30 0;0 0" dur="2s" repeatCount="indefinite"/>
+    </path>
+
+    <!-- Reel inside tank -->
+    <ellipse cx="200" cy="130" rx="72" ry="20" fill="none" stroke="#5B9BD5" stroke-width="2" stroke-dasharray="6,4" opacity="0.7"/>
+    <ellipse cx="200" cy="130" rx="50" ry="13" fill="none" stroke="#5B9BD5" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+    <text x="200" y="134" font-family="IBM Plex Mono" font-size="10" fill="rgba(91,155,213,0.6)" text-anchor="middle">film reel</text>
+
+    <!-- Particles floating — fixer being washed out (small dots rising) -->
+    <circle cx="140" cy="200" r="2.5" fill="rgba(180,140,80,0.5)">
+      <animate attributeName="cy" values="200;55" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;0" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="170" cy="220" r="2" fill="rgba(180,140,80,0.4)">
+      <animate attributeName="cy" values="220;55" dur="2.5s" begin="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.4;0" dur="2.5s" begin="0.8s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="230" cy="190" r="3" fill="rgba(180,140,80,0.35)">
+      <animate attributeName="cy" values="190;55" dur="3.5s" begin="1.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.35;0" dur="3.5s" begin="1.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="255" cy="210" r="2" fill="rgba(180,140,80,0.4)">
+      <animate attributeName="cy" values="210;55" dur="2.8s" begin="0.4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.4;0" dur="2.8s" begin="0.4s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- NO lid — open top, dashed -->
+    <rect x="90" y="36" width="220" height="16" rx="4" fill="none" stroke="#3A6A9A" stroke-width="1.5" stroke-dasharray="6,4"/>
+    <text x="200" y="32" font-family="IBM Plex Mono" font-size="9" fill="#3A6A9A" text-anchor="middle">lid off — fully light safe</text>
+
+    <!-- Drain stream at bottom — animated -->
+    <line x1="200" y1="230" x2="200" y2="270" stroke="#3A6A9A" stroke-width="4" stroke-linecap="round">
+      <animate attributeName="opacity" values="1;0.3;1" dur="0.6s" repeatCount="indefinite"/>
+    </line>
+    <line x1="190" y1="240" x2="190" y2="270" stroke="#3A6A9A" stroke-width="2" stroke-linecap="round">
+      <animate attributeName="opacity" values="0.6;0.1;0.6" dur="0.8s" repeatCount="indefinite"/>
+    </line>
+    <line x1="210" y1="238" x2="210" y2="270" stroke="#3A6A9A" stroke-width="2" stroke-linecap="round">
+      <animate attributeName="opacity" values="0.5;0.15;0.5" dur="0.7s" repeatCount="indefinite"/>
+    </line>
+    <text x="200" y="284" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="#3A6A9A" text-anchor="middle">FIXER DRAINING OUT</text>
+
+    <!-- Fixer particle legend -->
+    <circle cx="316" cy="160" r="5" fill="rgba(180,140,80,0.6)"/>
+    <text x="328" y="164" font-family="IBM Plex Mono" font-size="9" fill="#888">= residual fixer</text>
+    <text x="328" y="176" font-family="IBM Plex Mono" font-size="9" fill="#888">washing away</text>
+
+    <!-- Timer box -->
+    <rect x="306" y="60" width="74" height="70" rx="6" fill="#1a1a1a" stroke="#2F4A3F" stroke-width="1.5"/>
+    <text x="343" y="88" font-family="IBM Plex Mono" font-size="20" font-weight="600" fill="#fff" text-anchor="middle">20</text>
+    <text x="343" y="103" font-family="IBM Plex Mono" font-size="10" fill="#555" text-anchor="middle">minutes</text>
+    <text x="343" y="120" font-family="IBM Plex Mono" font-size="9" fill="#2F4A3F" text-anchor="middle">18–24°C</text>
+  `;
+}
+
+
+function drawPhotoFlo(svg) {
+  svg.setAttribute('viewBox', '0 0 400 300');
+  svg.innerHTML = `
+    <rect width="400" height="300" fill="#111"/>
+
+    <!-- Tank with clear water -->
+    <rect x="100" y="50" width="200" height="180" rx="8" fill="#252525" stroke="#444" stroke-width="2"/>
+    <rect x="102" y="52" width="196" height="176" rx="6" fill="#A8C4D4" opacity="0.25"/>
+
+    <!-- Bottle of Photo-Flo being added -->
+    <!-- Bottle -->
+    <rect x="290" y="30" width="36" height="80" rx="6" fill="#e8b000" stroke="#c99000" stroke-width="2"/>
+    <rect x="298" y="18" width="20" height="16" rx="3" fill="#c99000" stroke="#aaa" stroke-width="1.5"/>
+    <text x="308" y="60" font-family="IBM Plex Mono" font-size="7" fill="#111" text-anchor="middle" font-weight="600">PHOTO</text>
+    <text x="308" y="72" font-family="IBM Plex Mono" font-size="7" fill="#111" text-anchor="middle" font-weight="600">FLO</text>
+    <text x="308" y="84" font-family="IBM Plex Mono" font-size="7" fill="#111" text-anchor="middle">200</text>
+
+    <!-- Drops falling from bottle into tank -->
+    <ellipse cx="248" cy="48" rx="4" ry="6" fill="#A8C4D4" opacity="0.8"/>
+    <ellipse cx="242" cy="62" rx="3" ry="5" fill="#A8C4D4" opacity="0.6"/>
+    <text x="200" y="15" font-family="IBM Plex Mono" font-size="10" fill="#A8C4D4" text-anchor="middle">a few drops only</text>
+
+    <!-- Surface tension vs no tension diagram -->
+    <!-- With tension (water beading) -->
+    <rect x="30" y="180" width="130" height="80" rx="4" fill="#1a1a1a" stroke="#555" stroke-width="1"/>
+    <text x="95" y="196" font-family="IBM Plex Mono" font-size="9" fill="#888" text-anchor="middle">WITHOUT Photo-Flo</text>
+    <!-- Water drops beading -->
+    <ellipse cx="60" cy="225" rx="12" ry="10" fill="#5B9BD5" opacity="0.7"/>
+    <ellipse cx="90" cy="220" rx="9" ry="8" fill="#5B9BD5" opacity="0.7"/>
+    <ellipse cx="118" cy="228" rx="10" ry="9" fill="#5B9BD5" opacity="0.7"/>
+    <text x="95" y="248" font-family="IBM Plex Mono" font-size="9" fill="#c55" text-anchor="middle">water beads → spots</text>
+
+    <!-- Without tension (water sheeting) -->
+    <rect x="240" y="180" width="130" height="80" rx="4" fill="#1a1a1a" stroke="#2F4A3F" stroke-width="1.5"/>
+    <text x="305" y="196" font-family="IBM Plex Mono" font-size="9" fill="#2F4A3F" text-anchor="middle">WITH Photo-Flo</text>
+    <!-- Water sheeting -->
+    <rect x="252" y="210" width="106" height="22" rx="2" fill="#5B9BD5" opacity="0.4"/>
+    <line x1="252" y1="232" x2="358" y2="232" stroke="#5B9BD5" stroke-width="1" opacity="0.6"/>
+    <text x="305" y="248" font-family="IBM Plex Mono" font-size="9" fill="#2F4A3F" text-anchor="middle">sheets off → no spots</text>
+
+    <!-- Reel in tank -->
+    <ellipse cx="200" cy="100" rx="70" ry="18" fill="none" stroke="#A8C4D4" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.5"/>
+
+    <text x="200" y="294" font-family="IBM Plex Mono" font-size="8" fill="#444" text-anchor="middle">PHOTO-FLO 200 — 30 seconds — gentle swirl only</text>
+  `;
+}
+
+function drawDry(svg) {
+  svg.setAttribute('viewBox', '0 0 400 300');
+  svg.innerHTML = `
+    <rect width="400" height="300" fill="#111"/>
+
+    <!-- Hanging rod at top -->
+    <rect x="40" y="35" width="320" height="8" rx="4" fill="#444" stroke="#555" stroke-width="1"/>
+
+    <!-- Film strip hanging down — 3 strips -->
+    <!-- Strip 1 -->
+    <rect x="90" y="43" width="28" height="200" rx="2" fill="#888"/>
+    <!-- Frames on strip 1 -->
+    <rect x="94" y="55" width="20" height="16" rx="1" fill="#555"/>
+    <rect x="94" y="77" width="20" height="16" rx="1" fill="#6a6a6a"/>
+    <rect x="94" y="99" width="20" height="16" rx="1" fill="#444"/>
+    <rect x="94" y="121" width="20" height="16" rx="1" fill="#777"/>
+    <rect x="94" y="143" width="20" height="16" rx="1" fill="#555"/>
+    <!-- Clip top -->
+    <rect x="96" y="36" width="16" height="8" rx="2" fill="#2F4A3F"/>
+    <!-- Weight bottom -->
+    <rect x="93" y="240" width="22" height="10" rx="3" fill="#555"/>
+
+    <!-- Strip 2 -->
+    <rect x="186" y="43" width="28" height="200" rx="2" fill="#888"/>
+    <rect x="190" y="55" width="20" height="16" rx="1" fill="#6a6a6a"/>
+    <rect x="190" y="77" width="20" height="16" rx="1" fill="#444"/>
+    <rect x="190" y="99" width="20" height="16" rx="1" fill="#888"/>
+    <rect x="190" y="121" width="20" height="16" rx="1" fill="#555"/>
+    <rect x="190" y="143" width="20" height="16" rx="1" fill="#666"/>
+    <rect x="192" y="36" width="16" height="8" rx="2" fill="#2F4A3F"/>
+    <rect x="189" y="240" width="22" height="10" rx="3" fill="#555"/>
+
+    <!-- Strip 3 -->
+    <rect x="282" y="43" width="28" height="200" rx="2" fill="#888"/>
+    <rect x="286" y="55" width="20" height="16" rx="1" fill="#555"/>
+    <rect x="286" y="77" width="20" height="16" rx="1" fill="#777"/>
+    <rect x="286" y="99" width="20" height="16" rx="1" fill="#444"/>
+    <rect x="286" y="121" width="20" height="16" rx="1" fill="#6a6a6a"/>
+    <rect x="286" y="143" width="20" height="16" rx="1" fill="#555"/>
+    <rect x="288" y="36" width="16" height="8" rx="2" fill="#2F4A3F"/>
+    <rect x="285" y="240" width="22" height="10" rx="3" fill="#555"/>
+
+    <!-- DO NOT TOUCH warning -->
+    <rect x="60" y="258" width="280" height="30" rx="4" fill="#1a1a1a" stroke="#c55" stroke-width="1.5"/>
+    <text x="200" y="278" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#c55" text-anchor="middle">DO NOT TOUCH THE EMULSION SIDE</text>
+
+    <!-- Time label -->
+    <rect x="334" y="80" width="56" height="50" rx="4" fill="#1a1a1a" stroke="#2F4A3F" stroke-width="1.5"/>
+    <text x="362" y="102" font-family="IBM Plex Mono" font-size="15" font-weight="600" fill="#fff" text-anchor="middle">1–2</text>
+    <text x="362" y="118" font-family="IBM Plex Mono" font-size="9" fill="#555" text-anchor="middle">hours</text>
+
+    <text x="200" y="294" font-family="IBM Plex Mono" font-size="8" fill="#444" text-anchor="middle">HANG TO DRY — dust-free — 1 to 2 hours</text>
+  `;
+}
+
+// ─── UI LOGIC ─────────────────────────────────────────────────────────────────
+
+let current = -1;
+
+function buildNav() {
+  const nav = document.getElementById('stepNav');
+  steps.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'step-btn';
+    btn.textContent = s.label;
+    btn.onclick = () => goTo(i);
+    btn.id = 'stepBtn' + i;
+    nav.appendChild(btn);
+  });
+}
+
+function buildParams(step) {
+  const body = document.getElementById('paramsBody');
+  body.innerHTML = '';
+  step.params.forEach((p, i) => {
+    const item = document.createElement('div');
+    item.className = 'param-item';
+    item.innerHTML = `
+      <div class="param-row" onclick="toggleParam(this)">
+        <div class="param-left">
+          <span class="param-label">${p.label}</span>
+          <span class="param-value">${p.value}</span>
+        </div>
+        <span class="param-toggle">›</span>
+      </div>
+      <div class="param-expand">${p.explain}</div>
+    `;
+    body.appendChild(item);
+  });
+}
+
+function toggleParam(row) {
+  const item = row.parentElement;
+  item.classList.toggle('open');
+}
+
+function goTo(i) {
+  current = i;
+  const s = steps[i];
+
+  document.querySelectorAll('.step-btn').forEach((b, j) => b.classList.toggle('active', j === i));
+  document.getElementById('prevBtn').disabled = i === 0;
+  document.getElementById('nextBtn').disabled = i === steps.length - 1;
+  document.getElementById('nextBtn').textContent = i === steps.length - 1 ? 'Done' : 'Next →';
+  document.getElementById('stepCounter').textContent = `Step ${i + 1} of ${steps.length}`;
+
+  const pct = Math.round(((i + 1) / steps.length) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  document.getElementById('illusStepName').textContent = s.title;
+  document.getElementById('illusStepNum').textContent = `${i + 1} / ${steps.length}`;
+  document.getElementById('paramStepTitle').textContent = s.title;
+
+  const svg = document.getElementById('illustrationSVG');
+  s.drawFn(svg);
+
+  buildParams(s);
+}
+
+function navigate(dir) {
+  const next = current + dir;
+  if (next >= 0 && next < steps.length) goTo(next);
+}
+
+function startOrNext() {
+  if (current === -1) goTo(0);
+  else navigate(1);
+}
+
+buildNav();
+goTo(0);
+</script>
+</body>
+</html>

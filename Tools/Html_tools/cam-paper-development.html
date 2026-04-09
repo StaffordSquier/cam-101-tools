@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paper Development — CAM Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #EFEFEF;
+    --surface: #FFFFFF;
+    --surface-2: #F5F5F5;
+    --text: #121212;
+    --text-2: #4A4A4A;
+    --divider: #DEDEDE;
+    --accent: #2F4A3F;
+    --accent-lit: #4a7a65;
+    --safelight: #c04000;
+    --safelight-dim: rgba(180,60,0,0.12);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --tray-dim: 0.25;
+    --tray-active: 1;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  .shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  /* Darkroom scene always stays dark regardless of theme */
+  .darkroom-scene {
+    background: #0d0a08 !important;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--surface);
+    border: 1px solid var(--divider);
+    border-radius: 4px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .header-left h1 {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: var(--text);
+  }
+
+  .header-left p {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-2);
+  }
+
+  /* Safelight indicator */
+  .safelight-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .safelight-bulb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--safelight);
+    box-shadow: 0 0 8px 3px rgba(200,70,0,0.6);
+  }
+
+  .safelight-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: rgba(200,100,40,0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* Step dots in header */
+  .step-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .step-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid var(--divider);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-2);
+    cursor: not-allowed;
+    transition: all 0.3s;
+    flex-shrink: 0;
+  }
+
+  .step-dot.unlocked {
+    cursor: pointer;
+    border-color: var(--text-2);
+    color: var(--text);
+  }
+
+  .step-dot.unlocked:hover {
+    border-color: var(--accent-lit);
+    color: var(--accent-lit);
+  }
+
+  .step-dot.active {
+    background: var(--safelight);
+    border-color: var(--safelight);
+    color: #fff;
+    box-shadow: 0 0 8px 2px rgba(200,70,0,0.4);
+  }
+
+  .step-dot.complete {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .step-dot-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-2);
+    white-space: nowrap;
+  }
+
+  /* ── MAIN BODY ── */
+  .body {
+    flex: 1;
+    display: flex;
+    gap: 8px;
+    min-height: 0;
+  }
+
+  /* ── DARKROOM SCENE (left) ── */
+  .darkroom-scene {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--divider);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Ambient safelight glow overlay */
+  .darkroom-scene::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(180,60,0,0.18) 0%, rgba(0,0,0,0) 65%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .darkroom-scene svg {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  /* Explanation card */
+  .explain-card {
+    background: var(--surface);
+    border: 1px solid var(--divider);
+    border-radius: 6px;
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  .explain-step-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--safelight);
+    opacity: 0.8;
+  }
+
+  .explain-headline {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .explain-body {
+    font-family: var(--sans);
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-2);
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* Key facts row */
+  .facts-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .fact-chip {
+    background: var(--surface-2);
+    border: 1px solid var(--divider);
+    border-radius: 3px;
+    padding: 4px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .fact-label {
+    font-family: var(--mono);
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-2);
+  }
+
+  .fact-value {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* Expandable detail params */
+  .params-section {
+    border-top: 1px solid var(--divider);
+    padding-top: 8px;
+    display: none;
+  }
+
+  .params-section.visible { display: block; }
+
+  .param-item { border-bottom: 1px solid var(--divider); }
+  .param-item:last-child { border-bottom: none; }
+
+  .param-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+    cursor: pointer;
+    gap: 8px;
+  }
+
+  .param-row:hover .param-value { color: var(--accent-lit); }
+
+  .param-left { flex: 1; min-width: 0; }
+
+  .param-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-2);
+  }
+
+  .param-value {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .param-toggle {
+    font-size: 13px;
+    color: var(--divider);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .param-item.open .param-toggle { transform: rotate(90deg); color: var(--accent); }
+
+  .param-expand {
+    display: none;
+    padding: 0 0 8px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-2);
+  }
+
+  .param-item.open .param-expand { display: block; }
+
+  .explain-step-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--safelight);
+  }
+
+  .explain-headline {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .explain-body {
+    font-family: var(--sans);
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-2);
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* ── NAV ── */
+  .nav-bar {
+    background: var(--surface);
+    border: 1px solid var(--divider);
+    border-radius: 4px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    gap: 8px;
+  }
+
+  .btn {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    height: 30px;
+    padding: 0 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid var(--divider);
+    background: transparent;
+    color: var(--text);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn:hover:not(:disabled) { border-color: var(--text-2); }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .btn-primary:hover:not(:disabled) { background: var(--accent-lit); }
+
+  .btn-accent {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .btn-accent:hover:not(:disabled) { background: var(--accent-lit); }
+
+  .nav-center {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-2);
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  /* ── PHONE ── */
+  @media (max-width: 640px) {
+    html, body { overflow: auto; height: auto; }
+    .shell { height: auto; }
+    .body { flex-direction: column; }
+    .right-panel { width: 100%; }
+    .darkroom-scene { min-height: 240px; position: sticky; top: 50px; z-index: 10; border-radius: 0; }
+    .nav-bar { position: sticky; bottom: 0; border-radius: 0; }
+  }
+
+  @media (max-width: 900px) and (min-width: 641px) {
+    .right-panel { width: 240px; }
+  }
+
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--divider); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Paper Development — Darkroom Tray Sequence</h1>
+      <p>ART 181 — B&amp;W Film Photography</p>
+    </div>
+    <div class="safelight-indicator">
+      <div class="safelight-bulb"></div>
+      <span class="safelight-label">Safelight On</span>
+    </div>
+    <div class="step-dots" id="stepDots"></div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- DARKROOM SCENE -->
+    <div class="darkroom-scene" id="darkroomScene">
+      <svg id="sceneSVG" viewBox="0 0 600 360" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+      <div class="explain-card" id="explainCard">
+        <div class="explain-step-tag" id="explainTag">Step 1 of 4</div>
+        <div class="explain-headline" id="explainHeadline">Click Tray 1 to begin.</div>
+        <div class="explain-body" id="explainBody">The four trays sit side by side under the safelight. You work left to right. Each tray has one job. The sequence never changes.</div>
+        <div class="facts-row" id="factsRow"></div>
+        <div class="params-section" id="paramsSection"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NAV BAR -->
+  <div class="nav-bar">
+    <button class="btn" id="prevBtn" onclick="prev()" disabled>← Back</button>
+    <div class="nav-center" id="navCenter">Click Tray 1 — Developer — to begin</div>
+    <button class="btn btn-primary" id="nextBtn" onclick="next()">Next Tray →</button>
+  </div>
+
+</div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+
+const steps = [
+  {
+    id: 'developer',
+    label: 'Developer',
+    chem: 'Eco-Pro Paper Developer',
+    time: '60–90 sec',
+    temp: '20°C',
+    agitation: 'Continuous rock',
+    tongs: 'Developer tongs only',
+    liquidColor: '#7a5520',
+    liquidOpacity: 0.8,
+    tag: 'Step 1 of 4 — Developer',
+    headline: 'The image appears here.',
+    body: 'Slide the paper in face-down. Rock the tray continuously. After about ten seconds, lift a corner. The image is coming — shadows first, then midtones, then highlights. Full development is 60 to 90 seconds.\n\nA print that looks right at 30 seconds will be too dark by 90. Trust the full time. If your print is consistently too dark at full development, the problem is your exposure at the enlarger — reduce the time there, not here.',
+    facts: [
+      { label: 'Time', value: '60–90 sec' },
+      { label: 'Temp', value: '20°C' },
+      { label: 'Agitation', value: 'Continuous' },
+    ],
+    params: [
+      { label: 'Chemical', value: 'Eco-Pro Paper Developer', explain: 'A low-toxicity paper developer. Mix to working strength before your session. Fresh developer produces the full tonal range your exposure intended. Old or exhausted developer produces flat, gray prints.' },
+      { label: 'Full development time', value: '60–90 seconds', explain: 'The image will look done before it actually is. A print that looks perfect at 40 seconds is overdeveloped at 90. Commit to the full time and adjust exposure if the result is too dark.' },
+      { label: 'Temperature', value: '20°C / 68°F', explain: 'Developer works faster when warm. We hold 20°C as the standard. In a cold darkroom the image will come up slowly — this is normal. Do not extend development time to compensate.' },
+      { label: 'Agitation', value: 'Continuous rocking', explain: 'Rock the tray gently and continuously from the moment the paper goes in. You are keeping fresh developer in contact with every part of the emulsion. Uneven agitation shows up as uneven density across the print.' },
+      { label: 'Tong discipline', value: 'Developer tongs only', explain: 'Use one dedicated set of tongs for this tray only. If developer gets into your stop bath or fixer it shortens their working life. Label your tongs or color-code them. This is a habit that matters.' },
+    ],
+  },
+  {
+    id: 'stopbath',
+    label: 'Stop Bath',
+    chem: 'Ilfostop',
+    time: '30 sec',
+    temp: '18–24°C',
+    agitation: 'Continuous',
+    tongs: 'Stop bath tongs only',
+    liquidColor: '#b08010',
+    liquidOpacity: 0.75,
+    tag: 'Step 2 of 4 — Stop Bath',
+    headline: 'Development stops the instant it hits this tray.',
+    body: 'Transfer the print immediately from developer. Stop bath is a weak acid that neutralizes the alkaline developer on contact. The moment the print enters this tray, development stops — exactly at the density it reached in the developer.\n\nAgitate continuously for 30 seconds. Without stop bath, residual developer keeps working unevenly as it drains off into the fixer. Stop bath gives you precision.',
+    facts: [
+      { label: 'Time', value: '30 sec' },
+      { label: 'Agitation', value: 'Continuous' },
+      { label: 'Watch for', value: 'Purple = done' },
+    ],
+    params: [
+      { label: 'Chemical', value: 'Ilfostop (diluted)', explain: 'An indicator stop bath — it starts yellow-orange and turns purple when exhausted. When it changes color, pour it back in the bottle and mix fresh. Until then it is working.' },
+      { label: 'Time', value: '30 seconds', explain: '30 seconds is sufficient. After that, lift the print with stop bath tongs and transfer immediately to the fixer tray. Do not let the print sit — move it promptly.' },
+      { label: 'Why it matters', value: 'Locks in exact development', explain: 'Without stop bath, developer left on the print continues working in the fixer. You lose control of the exact development time. Stop bath is what gives you repeatable results.' },
+      { label: 'Tong discipline', value: 'Stop bath tongs only', explain: 'Dedicated tongs for this tray. Never cross-contaminate. Developer on your stop bath tongs shortens its life. Stop bath on your developer ruins the developer immediately.' },
+    ],
+  },
+  {
+    id: 'fixer',
+    label: 'Fixer',
+    chem: 'Ilford Rapid Fixer',
+    time: '2–4 min RC',
+    temp: '18–24°C',
+    agitation: 'Periodic rock',
+    tongs: 'Fixer tongs only',
+    liquidColor: '#1a4060',
+    liquidOpacity: 0.70,
+    tag: 'Step 3 of 4 — Fixer',
+    headline: 'The print becomes permanent here.',
+    body: 'Fixer dissolves the unexposed silver halide crystals still in the paper. Before fixing, the print is still light-sensitive — turn on white lights and you will fog it instantly. After about 30 seconds in fixer you can briefly evaluate the print in white light. After the full time it is completely light-stable.\n\nRC paper fixes in 2 to 4 minutes. Fiber paper needs 10. We use RC paper in this course.',
+    facts: [
+      { label: 'Time RC', value: '2–4 min' },
+      { label: 'Time Fiber', value: '10 min' },
+      { label: 'White light', value: 'Safe at 30 sec' },
+    ],
+    params: [
+      { label: 'Chemical', value: 'Ilford Rapid Fixer', explain: 'A rapid-acting fixer suitable for both film and paper. Mix to paper concentration — it is different from film concentration. Check the bottle.' },
+      { label: 'RC vs fiber time', value: '2–4 min RC / 10 min fiber', explain: 'RC paper has a resin barrier that prevents fixer from penetrating deeply, so it clears fast. Fiber paper absorbs fixer into the paper base itself and needs much longer.' },
+      { label: 'White light check', value: 'Safe after 30 seconds', explain: 'After 30 seconds in fixer the print is stable enough to view briefly in white light. Use this to evaluate your dodging and burning decisions. Then return it to the fixer for the full fix time.' },
+      { label: 'Fixer capacity', value: 'Exhausts with use', explain: 'Fixer weakens as it fixes more prints. Keep track of how many sheets each batch has processed. Exhausted fixer produces prints that look fine today but fade within months. When in doubt, mix fresh.' },
+      { label: 'Tong discipline', value: 'Fixer tongs only', explain: 'Fixer contaminating developer ruins the developer immediately. Keep your tongs clean and dedicated to their tray.' },
+    ],
+  },
+  {
+    id: 'wash',
+    label: 'Wash',
+    chem: 'Running water',
+    time: '4 min RC',
+    temp: '18–24°C',
+    agitation: 'Running water',
+    tongs: 'Hands OK here',
+    liquidColor: '#1a4060',
+    liquidOpacity: 0.40,
+    tag: 'Step 4 of 4 — Wash',
+    headline: 'Residual fixer washes out. The print is done.',
+    body: 'Running water flushes residual fixer from the paper. Fixer is acidic — any left in the emulsion will slowly bleach the silver image over years. A proper wash is what makes a print archival.\n\nRC paper washes in 4 minutes. After washing, squeegee both sides gently and lay face-up to dry. What you pull from this tray is a silver gelatin photograph — metallic silver suspended in gelatin. Store it properly and it will last decades.',
+    facts: [
+      { label: 'Time RC', value: '4 min' },
+      { label: 'Time Fiber', value: '60 min' },
+      { label: 'Temp', value: '18–24°C' },
+    ],
+    params: [
+      { label: 'Chemical', value: 'Running water', explain: 'No chemistry here — just water. The goal is to displace all the residual fixer from the paper. RC paper washes fast because the resin coating prevents deep fixer penetration.' },
+      { label: 'Temperature', value: '18–24°C', explain: 'Cold water causes gelatin to contract and traps fixer inside. Hot water softens the emulsion and can cause reticulation — a crinkled surface texture baked in permanently. Stay in range.' },
+      { label: 'After washing', value: 'Squeegee — flat dry', explain: 'Squeegee both sides of the print with a clean rubber squeegee. Lay face-up on a clean flat surface. RC paper dries relatively flat in 20 to 30 minutes. Fiber paper will curl and needs to be dried face-down on a screen or in a print dryer.' },
+      { label: 'What you made', value: 'Silver gelatin print', explain: 'The image is metallic silver suspended in a gelatin emulsion on paper. Stored away from light, heat, humidity, and acid it will last for decades. That is what you made in this darkroom tonight.' },
+    ],
+  },
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+
+let activeStep = 0;        // which tray is currently lit / selected
+let highestUnlocked = 0;   // highest tray index that has been unlocked
+let showingDetail = false;  // whether params section is expanded
+
+// ─── DRAW SCENE ───────────────────────────────────────────────────────────────
+
+function drawScene(activeIdx) {
+  const svg = document.getElementById('sceneSVG');
+  const W = 600, H = 360;
+  const trayW = 110, trayH = 100;
+  const trayY = 120;
+  const traySpacing = 130;
+  const startX = (W - (4 * traySpacing - (traySpacing - trayW))) / 2;
+
+  // Build tray elements
+  let trays = '';
+  steps.forEach((s, i) => {
+    const tx = startX + i * traySpacing;
+    const isActive = i === activeIdx;
+    const isUnlocked = i <= highestUnlocked;
+    const isDone = i < activeIdx;
+
+    const alpha = isActive ? 1 : (isDone ? 0.6 : (isUnlocked ? 0.4 : 0.12));
+    const strokeColor = isActive ? '#c04000' : (isDone ? '#4a7a65' : '#333');
+    const strokeW = isActive ? 2.5 : 1.5;
+
+    // Glow behind active tray
+    const glow = isActive ? `
+      <ellipse cx="${tx + trayW/2}" cy="${trayY + trayH/2}" rx="${trayW * 0.8}" ry="${trayH * 0.6}"
+        fill="rgba(180,60,0,0.15)" filter="url(#blur)"/>
+    ` : '';
+
+    // Chemistry liquid
+    const liquid = `
+      <rect x="${tx + 2}" y="${trayY + 2}" width="${trayW - 4}" height="${trayH - 4}"
+        rx="3" fill="${s.liquidColor}" opacity="${s.liquidOpacity * alpha}"/>
+    `;
+
+    // Wave on active tray
+    const wave = isActive ? `
+      <path d="M${tx+4} ${trayY+30} Q${tx+28} ${trayY+22} ${tx+55} ${trayY+30} Q${tx+82} ${trayY+38} ${tx+trayW-4} ${trayY+30}"
+        fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5">
+        <animateTransform attributeName="transform" type="translate" values="0 0;-20 0;0 0" dur="2s" repeatCount="indefinite"/>
+      </path>
+    ` : '';
+
+    // Print in tray — visible when unlocked
+    const printOpacity = isUnlocked ? (isActive ? 1 : (isDone ? 0.7 : 0)) : 0;
+    let printContent = '';
+    if (s.id === 'developer') {
+      // Image appearing — partially formed
+      printContent = `
+        <rect x="${tx+18}" y="${trayY+20}" width="${trayW-36}" height="${trayH-40}" rx="1" fill="#e0dcc8" opacity="${printOpacity * 0.9}"/>
+        <rect x="${tx+18}" y="${trayY+20}" width="${trayW-36}" height="${(trayH-40)*0.45}" fill="#a0a098" opacity="${printOpacity * 0.8}"/>
+        <rect x="${tx+18}" y="${trayY+20+(trayH-40)*0.45}" width="${trayW-36}" height="${(trayH-40)*0.55}" fill="#5a5a52" opacity="${printOpacity * 0.8}"/>
+      `;
+    } else if (s.id === 'wash') {
+      printContent = `
+        <rect x="${tx+18}" y="${trayY+20}" width="${trayW-36}" height="${trayH-40}" rx="1" fill="#d0ccbc" opacity="${printOpacity * 0.9}"/>
+        <rect x="${tx+18}" y="${trayY+20}" width="${trayW-36}" height="${(trayH-40)*0.45}" fill="#909088" opacity="${printOpacity}"/>
+        <rect x="${tx+18}" y="${trayY+20+(trayH-40)*0.45}" width="${trayW-36}" height="${(trayH-40)*0.55}" fill="#484840" opacity="${printOpacity}"/>
+      `;
+    } else {
+      printContent = `
+        <rect x="${tx+18}" y="${trayY+20}" width="${trayW-36}" height="${trayH-40}" rx="1" fill="#d8d4c4" opacity="${printOpacity * 0.9}"/>
+        <rect x="${tx+18}" y="${trayY+20}" width="${trayW-36}" height="${(trayH-40)*0.45}" fill="#888880" opacity="${printOpacity}"/>
+        <rect x="${tx+18}" y="${trayY+20+(trayH-40)*0.45}" width="${trayW-36}" height="${(trayH-40)*0.55}" fill="#404038" opacity="${printOpacity}"/>
+      `;
+    }
+
+    // Bubbles on developer and stop bath
+    const bubbles = (isActive && (s.id === 'developer' || s.id === 'stopbath')) ? `
+      <circle cx="${tx+35}" cy="${trayY+70}" r="3" fill="rgba(255,255,255,0.2)">
+        <animate attributeName="cy" values="${trayY+70};${trayY+20}" dur="1.8s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.4;0" dur="1.8s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="${tx+65}" cy="${trayY+80}" r="2" fill="rgba(255,255,255,0.15)">
+        <animate attributeName="cy" values="${trayY+80};${trayY+20}" dur="2.2s" begin="0.6s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.3;0" dur="2.2s" begin="0.6s" repeatCount="indefinite"/>
+      </circle>
+    ` : '';
+
+    // Water animation for wash
+    const washAnim = (isActive && s.id === 'wash') ? `
+      <line x1="${tx+trayW/2-10}" y1="${trayY-20}" x2="${tx+trayW/2-10}" y2="${trayY}"
+        stroke="#5B9BD5" stroke-width="2" opacity="0.7">
+        <animate attributeName="opacity" values="0.7;0.2;0.7" dur="0.8s" repeatCount="indefinite"/>
+      </line>
+      <line x1="${tx+trayW/2}" y1="${trayY-25}" x2="${tx+trayW/2}" y2="${trayY}"
+        stroke="#5B9BD5" stroke-width="3" opacity="0.9">
+        <animate attributeName="opacity" values="0.9;0.3;0.9" dur="0.7s" repeatCount="indefinite"/>
+      </line>
+      <line x1="${tx+trayW/2+10}" y1="${trayY-20}" x2="${tx+trayW/2+10}" y2="${trayY}"
+        stroke="#5B9BD5" stroke-width="2" opacity="0.7">
+        <animate attributeName="opacity" values="0.7;0.1;0.7" dur="0.9s" repeatCount="indefinite"/>
+      </line>
+    ` : '';
+
+    // Tray body
+    const trayBody = `
+      <rect x="${tx}" y="${trayY}" width="${trayW}" height="${trayH}"
+        rx="5" fill="#151210" stroke="${strokeColor}" stroke-width="${strokeW}" opacity="${alpha}"/>
+    `;
+
+    // Tray number label
+    const numColor = isActive ? '#c04000' : (isDone ? '#4a7a65' : '#555');
+    const nameColor = isActive ? '#fff' : (isDone ? '#9a8870' : '#444');
+    const chemColor = isActive ? 'rgba(200,100,40,0.8)' : (isDone ? '#4a7a65' : '#333');
+
+    const labels = `
+      <text x="${tx + trayW/2}" y="${trayY - 10}" font-family="IBM Plex Mono" font-size="9"
+        font-weight="600" fill="${numColor}" text-anchor="middle" opacity="${isUnlocked ? 1 : 0.3}">TRAY ${i+1}</text>
+      <text x="${tx + trayW/2}" y="${trayY + trayH + 16}" font-family="IBM Plex Sans" font-size="12"
+        font-weight="600" fill="${nameColor}" text-anchor="middle" opacity="${isUnlocked ? 1 : 0.25}">${s.label}</text>
+      <text x="${tx + trayW/2}" y="${trayY + trayH + 30}" font-family="IBM Plex Mono" font-size="9"
+        fill="${chemColor}" text-anchor="middle" opacity="${isUnlocked ? 1 : 0.2}">${s.chem}</text>
+    `;
+
+    // Arrow between trays
+    const arrow = i < 3 ? `
+      <text x="${tx + trayW + 10}" y="${trayY + trayH/2 + 5}" font-family="IBM Plex Mono"
+        font-size="18" fill="${isDone ? '#4a7a65' : '#2a2018'}" text-anchor="middle" opacity="${isUnlocked ? 0.8 : 0.2}">→</text>
+    ` : '';
+
+    // Click target
+    const clickable = isUnlocked ? `style="cursor:pointer" onclick="selectStep(${i})"` : '';
+
+    trays += `
+      <g ${clickable}>
+        ${glow}
+        ${washAnim}
+        ${trayBody}
+        ${liquid}
+        ${printContent}
+        ${wave}
+        ${bubbles}
+        ${labels}
+        ${arrow}
+      </g>
+    `;
+  });
+
+  // Bench surface
+  const bench = `
+    <rect x="0" y="${trayY + trayH + 45}" width="${W}" height="30" fill="#181410" opacity="0.8"/>
+    <line x1="0" y1="${trayY + trayH + 45}" x2="${W}" y2="${trayY + trayH + 45}" stroke="#2a2018" stroke-width="1"/>
+  `;
+
+  // Safelight at top
+  const safelight = `
+    <rect x="${W/2 - 20}" y="0" width="40" height="14" rx="3" fill="#c04000" opacity="0.9"/>
+    <ellipse cx="${W/2}" cy="8" rx="80" ry="50" fill="rgba(180,60,0,0.12)"/>
+  `;
+
+  // Direction label
+  const dirLabel = `
+    <text x="${W/2}" y="${H - 10}" font-family="IBM Plex Mono" font-size="9"
+      fill="#3a3028" text-anchor="middle">work left to right →</text>
+  `;
+
+  svg.innerHTML = `
+    <defs>
+      <filter id="blur"><feGaussianBlur stdDeviation="8"/></filter>
+    </defs>
+    ${safelight}
+    ${bench}
+    ${trays}
+    ${dirLabel}
+  `;
+}
+
+// ─── LOGIC ────────────────────────────────────────────────────────────────────
+
+function selectStep(i) {
+  if (i > highestUnlocked) return;
+  activeStep = i;
+  showingDetail = false;
+  updateUI();
+}
+
+function next() {
+  if (!showingDetail) {
+    // First next: show detail params for current step
+    showingDetail = true;
+    updateUI();
+  } else {
+    // Second next: advance to next tray
+    if (activeStep < steps.length - 1) {
+      activeStep++;
+      highestUnlocked = Math.max(highestUnlocked, activeStep);
+      showingDetail = false;
+      updateUI();
+    }
+  }
+}
+
+function prev() {
+  if (showingDetail) {
+    showingDetail = false;
+    updateUI();
+  } else if (activeStep > 0) {
+    activeStep--;
+    showingDetail = true;
+    updateUI();
+  }
+}
+
+function updateUI() {
+  const s = steps[activeStep];
+  const isLast = activeStep === steps.length - 1;
+
+  // Scene
+  drawScene(activeStep);
+
+  // Step dots
+  document.querySelectorAll('.step-dot').forEach((dot, i) => {
+    dot.classList.remove('active', 'complete', 'unlocked');
+    if (i < activeStep) dot.classList.add('complete');
+    else if (i === activeStep) dot.classList.add('active');
+    else if (i <= highestUnlocked) dot.classList.add('unlocked');
+  });
+
+  // Explain card
+  document.getElementById('explainTag').textContent = s.tag;
+  document.getElementById('explainHeadline').textContent = s.headline;
+
+  // Body text — split on \n\n for paragraphs
+  const bodyEl = document.getElementById('explainBody');
+  bodyEl.innerHTML = s.body.split('\n\n').map(p =>
+    `<p style="margin-bottom:10px;last-child:{margin-bottom:0}">${p}</p>`
+  ).join('');
+
+  // Facts chips
+  const factsEl = document.getElementById('factsRow');
+  factsEl.innerHTML = s.facts.map(f =>
+    `<div class="fact-chip">
+      <span class="fact-label">${f.label}</span>
+      <span class="fact-value">${f.value}</span>
+    </div>`
+  ).join('');
+
+  // Params section
+  const paramsEl = document.getElementById('paramsSection');
+  if (showingDetail) {
+    paramsEl.classList.add('visible');
+    paramsEl.innerHTML = s.params.map(p => `
+      <div class="param-item">
+        <div class="param-row" onclick="this.parentElement.classList.toggle('open')">
+          <div class="param-left">
+            <span class="param-label">${p.label}</span>
+            <span class="param-value">${p.value}</span>
+          </div>
+          <span class="param-toggle">›</span>
+        </div>
+        <div class="param-expand">${p.explain}</div>
+      </div>
+    `).join('');
+  } else {
+    paramsEl.classList.remove('visible');
+    paramsEl.innerHTML = '';
+  }
+
+  // Nav bar
+  document.getElementById('prevBtn').disabled = (activeStep === 0 && !showingDetail);
+
+  if (isLast && showingDetail) {
+    document.getElementById('nextBtn').textContent = 'Done ✓';
+    document.getElementById('nextBtn').disabled = true;
+    document.getElementById('navCenter').textContent = 'Sequence complete — all four trays covered';
+  } else if (showingDetail) {
+    document.getElementById('nextBtn').textContent = `Next Tray: ${steps[activeStep + 1].label} →`;
+    document.getElementById('nextBtn').disabled = false;
+    document.getElementById('navCenter').textContent = `Tap any detail row to expand it`;
+  } else {
+    document.getElementById('nextBtn').textContent = 'Go Deeper →';
+    document.getElementById('nextBtn').disabled = false;
+    document.getElementById('navCenter').textContent = `Tray ${activeStep + 1} of 4 — ${s.label}`;
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+function init() {
+  // Build step dots
+  const dotsEl = document.getElementById('stepDots');
+  steps.forEach((s, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.id = 'dot' + i;
+    dot.textContent = i + 1;
+    dot.onclick = () => { if (i <= highestUnlocked) selectStep(i); };
+    dot.title = s.label;
+    dotsEl.appendChild(dot);
+
+    if (i < steps.length - 1) {
+      const sep = document.createElement('span');
+      sep.className = 'step-dot-label';
+      sep.textContent = '·';
+      dotsEl.appendChild(sep);
+    }
+  });
+
+  updateUI();
+}
+
+init();
+</script>
+</body>
+</html>
