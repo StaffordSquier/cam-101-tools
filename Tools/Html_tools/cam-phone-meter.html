@@ -403,7 +403,10 @@
     const settingEV = apertureEV[aIdx] + shutterEV[sIdx] - isoCorrection;
 
     // Difference from scene
-    const diff = settingEV - sceneEV; // negative = underexposed, positive = overexposed
+    // settingEV is the EV the camera settings are "calibrated for" — a higher settingEV
+    // means smaller aperture / faster shutter, i.e. less light reaching the film.
+    // If settingEV > sceneEV, the film gets less light than the scene needs → underexposed.
+    const diff = sceneEV - settingEV; // negative = underexposed, positive = overexposed
 
     // EV display
     document.getElementById('ev-display').textContent = sceneEV.toFixed(0);
