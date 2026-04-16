@@ -5,5 +5,9 @@
 !Tools/
 !Tools/**
 
+# Block PowerPoint files anywhere in Tools
+Tools/**/*.pptx
+Tools/**/*.ppt
+
 # Unblock .gitignore itself
 !.gitignore
