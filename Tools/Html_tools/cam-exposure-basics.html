@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What Is Exposure? — CAM 101</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:         #EFEFEF;
+    --surface:    #FFFFFF;
+    --text:       #121212;
+    --text-2:     #4A4A4A;
+    --divider:    #E2E0DA;
+    --accent:     #2F4A3F;
+    --accent-dim: #3d5e51;
+    --danger:     #5C2F2F;
+    --warn:       #7A4A1E;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    font-family: var(--sans);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--divider);
+    padding: 16px 24px;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+  .header-sub {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-2);
+  }
+
+  .page {
+    padding: 32px 24px;
+    max-width: 880px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-2);
+    margin-bottom: 12px;
+  }
+
+  .intro-card {
+    background: var(--surface);
+    border: 1px solid var(--divider);
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .intro-card p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text-2);
+  }
+  .intro-card p strong { color: var(--text); font-weight: 500; }
+
+  .main-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  @media (max-width: 620px) {
+    .main-layout { grid-template-columns: 1fr; }
+    .page { padding: 20px 16px; }
+  }
+
+  /* CAMERA PANEL */
+  .camera-panel {
+    background: var(--surface);
+    border: 1px solid var(--divider);
+    border-radius: 4px;
+    padding: 20px;
+  }
+
+  .camera-illustration {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .shutter-options {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .shutter-btn {
+    flex: 1;
+    height: 34px;
+    border-radius: 3px;
+    border: 1px solid var(--divider);
+    background: transparent;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-2);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .shutter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .shutter-btn.active-under   { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .shutter-btn.active-correct { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .shutter-btn.active-over    { background: var(--warn);   border-color: var(--warn);   color: #fff; }
+
+  .light-bar-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-2);
+    margin-bottom: 6px;
+  }
+  .shutter-track {
+    height: 6px;
+    background: var(--bg);
+    border: 1px solid var(--divider);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .shutter-fill {
+    height: 100%;
+    border-radius: 3px;
+    width: 0%;
+  }
+  .shutter-fill.fill-under   { animation: fillUnder 0.5s ease-out forwards; background: var(--danger); }
+  .shutter-fill.fill-correct { animation: fillCorrect 0.5s ease-out forwards; background: var(--accent); }
+  .shutter-fill.fill-over    { animation: fillOver 0.5s ease-out forwards; background: var(--warn); }
+
+  @keyframes fillUnder   { from { width: 0%; } to { width: 18%; } }
+  @keyframes fillCorrect { from { width: 0%; } to { width: 52%; } }
+  @keyframes fillOver    { from { width: 0%; } to { width: 100%; } }
+
+  .bar-endpoints {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-2);
+  }
+
+  .film-state {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--divider);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-2);
+    min-height: 34px;
+    line-height: 1.55;
+    transition: color 0.2s;
+  }
+
+  /* RESULT PANEL */
+  .result-panel {
+    background: var(--surface);
+    border: 1px solid var(--divider);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .result-panel-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--divider);
+  }
+
+  .result-image-slot {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    position: relative;
+    overflow: hidden;
+    background: #1a1a1a;
+  }
+
+  .scene {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .scene.visible { opacity: 1; }
+
+  /* Idle */
+  .scene-idle {
+    background: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .idle-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: rgba(255,255,255,0.18);
+    text-align: center;
+    line-height: 1.7;
+  }
+
+  /* Under */
+  .scene-under { background: #080808; }
+  .scene-under::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 42% 48%, #161008 0%, #040404 72%);
+  }
+
+  /* Correct */
+  .scene-correct { background: #4a3c2e; }
+  .scene-correct::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 42% 42%, #c8a882 0%, #7a6040 45%, #2e2010 100%);
+  }
+
+  /* Over */
+  .scene-over { background: #ece6dc; }
+  .scene-over::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 45% 38%, #ffffff 0%, #f0ebe0 38%, #d8d0c4 100%);
+  }
+
+  .silhouette {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 38%;
+    z-index: 2;
+  }
+
+  /* Real photo swap */
+  img.real-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    z-index: 10;
+  }
+
+  .result-label-strip {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--divider);
+    min-height: 46px;
+  }
+
+  .result-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0;
+    transition: opacity 0.3s;
+    position: absolute;
+  }
+  .result-label.visible { opacity: 1; position: relative; }
+  .label-under   { color: var(--danger); }
+  .label-correct { color: var(--accent); }
+  .label-over    { color: var(--warn); }
+
+  .label-idle {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-2);
+    transition: opacity 0.2s;
+  }
+  .label-idle.hidden { opacity: 0; }
+
+  .result-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--divider);
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+  .dot-under   { background: var(--danger); }
+  .dot-correct { background: var(--accent); }
+  .dot-over    { background: var(--warn); }
+
+  /* BOTTOM NOTE */
+  .bottom-note {
+    margin-top: 16px;
+    background: var(--surface);
+    border: 1px solid var(--divider);
+    border-radius: 4px;
+    padding: 20px;
+  }
+  .bottom-note p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text-2);
+  }
+  .bottom-note p strong { color: var(--text); font-weight: 500; }
+
+  .swap-note {
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-2);
+    text-align: center;
+    border: 1px dashed var(--divider);
+    border-radius: 3px;
+    padding: 6px 10px;
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--divider); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <h1>What Is Exposure?</h1>
+  <span class="header-sub">CAM 101 / ART 180 — Week 2</span>
+</header>
+
+<div class="page">
+
+  <div class="intro-card">
+    <p>Before aperture, before ISO, there is one question: <strong>how much light reaches the film?</strong> Press a shutter duration below and see what happens.</p>
+  </div>
+
+  <div class="section-label">Interactive Demonstration</div>
+
+  <div class="main-layout">
+
+    <!-- LEFT: Camera -->
+    <div class="camera-panel">
+      <div class="section-label">Shutter Duration</div>
+
+      <div class="camera-illustration">
+        <svg id="camera-svg" width="190" height="144" viewBox="0 0 190 144" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="14" y="38" width="162" height="98" rx="6" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="1.5"/>
+          <rect x="50" y="26" width="48" height="16" rx="3" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="1.5"/>
+          <circle cx="84" cy="26" r="6" fill="#EFEFEF" stroke="#E2E0DA" stroke-width="1"/>
+          <circle cx="95" cy="87" r="36" fill="#EFEFEF" stroke="#E2E0DA" stroke-width="1.5"/>
+          <circle cx="95" cy="87" r="26" fill="#FFFFFF" stroke="#E2E0DA" stroke-width="1"/>
+          <circle id="lens-glass" cx="95" cy="87" r="19" fill="#1a1a1a" stroke="#2F4A3F" stroke-width="1.5" style="transition: fill 0.15s;"/>
+          <ellipse cx="88" cy="80" rx="6" ry="3.5" fill="rgba(255,255,255,0.07)" transform="rotate(-20 88 80)"/>
+          <g id="aperture-open" opacity="0" style="transition: opacity 0.15s;">
+            <circle cx="95" cy="87" r="13" fill="none" stroke="#2F4A3F" stroke-width="1" stroke-dasharray="3 2"/>
+            <circle cx="95" cy="87" r="7" fill="#2F4A3F" opacity="0.2"/>
+          </g>
+          <rect x="136" y="48" width="22" height="14" rx="2" fill="#EFEFEF" stroke="#E2E0DA" stroke-width="1"/>
+          <rect x="148" y="108" width="16" height="16" rx="3" fill="#EFEFEF" stroke="#E2E0DA" stroke-width="1"/>
+        </svg>
+      </div>
+
+      <div class="shutter-options">
+        <button class="shutter-btn" data-mode="under"   onclick="triggerExposure('under')">Brief</button>
+        <button class="shutter-btn" data-mode="correct" onclick="triggerExposure('correct')">Correct</button>
+        <button class="shutter-btn" data-mode="over"    onclick="triggerExposure('over')">Long</button>
+      </div>
+
+      <div class="light-bar-label">Light Reaching Film</div>
+      <div class="shutter-track">
+        <div class="shutter-fill" id="shutter-fill"></div>
+      </div>
+      <div class="bar-endpoints">
+        <span>less</span>
+        <span id="duration-val" style="font-weight:600; color:var(--text);">—</span>
+        <span>more</span>
+      </div>
+
+      <div class="film-state" id="film-state">Choose a shutter duration above.</div>
+    </div>
+
+    <!-- RIGHT: Single result -->
+    <div class="result-panel">
+      <div class="result-panel-header">
+        <div class="section-label" style="margin-bottom:0;">Result on Film</div>
+      </div>
+
+      <div class="result-image-slot">
+        <div class="scene scene-idle visible" id="scene-idle">
+          <div class="idle-text">Press a shutter<br>duration to see<br>the result.</div>
+        </div>
+
+        <div class="scene scene-under" id="scene-under">
+          <svg class="silhouette" viewBox="0 0 400 100" preserveAspectRatio="none">
+            <path d="M0,100 L0,55 Q50,35 100,50 Q150,65 200,38 Q230,25 260,42 Q310,62 360,35 L400,40 L400,100 Z" fill="rgba(0,0,0,0.75)"/>
+          </svg>
+        </div>
+
+        <div class="scene scene-correct" id="scene-correct">
+          <svg class="silhouette" viewBox="0 0 400 100" preserveAspectRatio="none">
+            <path d="M0,100 L0,55 Q50,35 100,50 Q150,65 200,38 Q230,25 260,42 Q310,62 360,35 L400,40 L400,100 Z" fill="rgba(15,10,5,0.55)"/>
+          </svg>
+        </div>
+
+        <div class="scene scene-over" id="scene-over">
+          <svg class="silhouette" viewBox="0 0 400 100" preserveAspectRatio="none">
+            <path d="M0,100 L0,55 Q50,35 100,50 Q150,65 200,38 Q230,25 260,42 Q310,62 360,35 L400,40 L400,100 Z" fill="rgba(210,195,175,0.45)"/>
+          </svg>
+        </div>
+
+        <!-- Swap real photos in here -->
+        <img class="real-photo" id="real-photo" alt="">
+      </div>
+
+      <div class="result-label-strip">
+        <div style="position:relative; min-width:140px; min-height:18px;">
+          <span class="label-idle" id="label-idle">—</span>
+          <span class="result-label label-under"   id="label-under">Underexposed</span>
+          <span class="result-label label-correct" id="label-correct">Correct Exposure</span>
+          <span class="result-label label-over"    id="label-over">Overexposed</span>
+        </div>
+        <div class="result-dot" id="result-dot"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="swap-note">Photo slots ready — replace placeholder scenes with real images when available.</div>
+
+  <div class="bottom-note">
+    <div class="section-label" style="margin-bottom:8px;">The Core Idea</div>
+    <p>The shutter controls how long the film is open to light. <strong>Too brief</strong> and the image goes dark — underexposed. <strong>Too long</strong> and it bleaches out — overexposed. <strong>Correct exposure</strong> sits between those two extremes. Aperture and ISO are tools for finding that balance under different conditions.</p>
+  </div>
+
+</div>
+
+<script>
+  const config = {
+    under:   { btnClass: 'active-under',   duration: '1/1000 sec', fillClass: 'fill-under',   openMsg: 'Shutter open briefly — very little light reaches the film.', closeMsg: 'Shutter closed. Film underexposed.' },
+    correct: { btnClass: 'active-correct', duration: '1/60 sec',   fillClass: 'fill-correct', openMsg: 'Shutter open — measured light reaches the film.',       closeMsg: 'Shutter closed. Correct exposure recorded.' },
+    over:    { btnClass: 'active-over',    duration: '1 sec',      fillClass: 'fill-over',    openMsg: 'Shutter open long — light floods the film.',             closeMsg: 'Shutter closed. Film overexposed.' }
+  };
+
+  const shutterTiming = { under: 180, correct: 500, over: 950 };
+  const dotClass = { under: 'dot-under', correct: 'dot-correct', over: 'dot-over' };
+
+  function triggerExposure(mode) {
+    const c = config[mode];
+
+    // Buttons
+    document.querySelectorAll('.shutter-btn').forEach(b => b.className = 'shutter-btn');
+    document.querySelector(`[data-mode="${mode}"]`).classList.add(c.btnClass);
+
+    // Light bar
+    const fill = document.getElementById('shutter-fill');
+    fill.className = 'shutter-fill';
+    void fill.offsetWidth;
+    fill.className = 'shutter-fill ' + c.fillClass;
+
+    // Duration label
+    document.getElementById('duration-val').textContent = c.duration;
+
+    // Film state — open
+    const fs = document.getElementById('film-state');
+    fs.textContent = c.openMsg;
+    fs.style.color = 'var(--accent)';
+
+    // Lens open
+    document.getElementById('lens-glass').setAttribute('fill', '#2F4A3F');
+    document.getElementById('aperture-open').setAttribute('opacity', '1');
+
+    // Reset scenes to idle during shutter open
+    ['under','correct','over'].forEach(s => document.getElementById('scene-' + s).classList.remove('visible'));
+    document.getElementById('scene-idle').classList.add('visible');
+
+    // Reset labels
+    ['under','correct','over'].forEach(l => document.getElementById('label-' + l).classList.remove('visible'));
+    const idleLabel = document.getElementById('label-idle');
+    idleLabel.textContent = '—';
+    idleLabel.classList.remove('hidden');
+    document.getElementById('result-dot').className = 'result-dot';
+
+    // After shutter closes
+    setTimeout(() => {
+      document.getElementById('lens-glass').setAttribute('fill', '#1a1a1a');
+      document.getElementById('aperture-open').setAttribute('opacity', '0');
+
+      fs.textContent = c.closeMsg;
+      fs.style.color = 'var(--text-2)';
+
+      // Show result
+      document.getElementById('scene-idle').classList.remove('visible');
+      document.getElementById('scene-' + mode).classList.add('visible');
+
+      // Show label
+      idleLabel.classList.add('hidden');
+      document.getElementById('label-' + mode).classList.add('visible');
+
+      // Dot
+      document.getElementById('result-dot').className = 'result-dot ' + dotClass[mode];
+
+    }, shutterTiming[mode]);
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phone Light Meter — CAM 101</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #EFEFEF; --surface: #FFFFFF; --text: #121212; --text-2: #4A4A4A;
+    --divider: #E2E0DA; --accent: #2F4A3F; --accent-dim: #3d5e51;
+    --danger: #5C2F2F; --mono: 'IBM Plex Mono', monospace; --sans: 'IBM Plex Sans', sans-serif;
+  }
+  body { background: var(--bg); font-family: var(--sans); color: var(--text); min-height: 100vh; }
+
+  .header { background: var(--surface); border-bottom: 1px solid var(--divider); padding: 16px 24px; display: flex; align-items: baseline; gap: 16px; }
+  .header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+  .header-sub { font-family: var(--mono); font-size: 12px; color: var(--text-2); }
+
+  .page { padding: 32px 24px; max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 280px 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 640px) { .page { grid-template-columns: 1fr; padding: 20px 16px; } }
+
+  .section-label { font-family: var(--mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-2); margin-bottom: 12px; }
+
+  /* PHONE */
+  .phone-wrap { background: var(--surface); border: 1px solid var(--divider); border-radius: 4px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+
+  .phone {
+    width: 200px;
+    background: #111;
+    border-radius: 24px;
+    padding: 14px 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    position: relative;
+  }
+  .phone-notch { width: 70px; height: 18px; background: #111; border-radius: 0 0 12px 12px; margin: 0 auto 8px; position: relative; z-index: 2; }
+  .phone-screen {
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 12px;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* METER SCALE */
+  .meter-scale-wrap { margin-bottom: 12px; }
+  .meter-scale {
+    position: relative;
+    height: 28px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .meter-track {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+  }
+  /* Gradient: red left, green center, red right */
+  .meter-gradient {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to right, #c0392b, #e67e22, #27ae60, #e67e22, #c0392b);
+    opacity: 0.15;
+  }
+  .meter-ticks {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 4px 2px;
+  }
+  .meter-tick { width: 1px; height: 6px; background: #bbb; }
+  .meter-tick.major { height: 10px; background: #888; }
+  .meter-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: #999;
+    margin-top: 2px;
+    padding: 0 2px;
+  }
+  .needle-container {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+  }
+  .needle {
+    position: absolute;
+    width: 2px;
+    height: 22px;
+    background: #111;
+    border-radius: 1px;
+    top: 3px;
+    transform: translateX(-50%);
+    transition: left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .needle::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px; height: 6px;
+    background: #111;
+    border-radius: 50%;
+  }
+  .center-mark {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 1px;
+    height: 100%;
+    background: #27ae60;
+    opacity: 0.4;
+    transform: translateX(-50%);
+  }
+
+  /* PHONE READOUT */
+  .ev-display {
+    text-align: center;
+    margin: 8px 0;
+  }
+  .ev-label { font-size: 9px; font-family: var(--mono); color: #999; text-transform: uppercase; letter-spacing: 0.06em; }
+  .ev-value { font-size: 28px; font-weight: 700; font-family: var(--mono); color: #111; line-height: 1; }
+
+  .phone-divider { height: 1px; background: #eee; margin: 6px 0; }
+
+  .phone-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid #f0f0f0; }
+  .phone-row:last-child { border-bottom: none; }
+  .phone-row-label { font-size: 9px; font-family: var(--mono); color: #999; text-transform: uppercase; letter-spacing: 0.05em; }
+  .phone-row-value { font-size: 16px; font-weight: 600; font-family: var(--mono); color: #111; }
+  .phone-row-value.correct { color: #27ae60; }
+  .phone-row-value.warn { color: #e67e22; }
+  .phone-row-value.danger { color: #c0392b; }
+
+  .meter-status {
+    text-align: center;
+    font-size: 9px;
+    font-family: var(--mono);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 0 0;
+    color: #999;
+    transition: color 0.3s;
+  }
+  .meter-status.correct { color: #27ae60; }
+  .meter-status.warn { color: #e67e22; }
+  .meter-status.danger { color: #c0392b; }
+
+  /* CONTROLS */
+  .controls-wrap { display: flex; flex-direction: column; gap: 12px; }
+
+  .card { background: var(--surface); border: 1px solid var(--divider); border-radius: 4px; padding: 16px 20px; }
+
+  .scene-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .scene-btn {
+    padding: 8px 6px;
+    border: 1px solid var(--divider);
+    border-radius: 3px;
+    background: transparent;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-2);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    line-height: 1.3;
+  }
+  .scene-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .scene-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .control-row { margin-bottom: 14px; }
+  .control-row:last-child { margin-bottom: 0; }
+  .control-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .control-name { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em; }
+  .control-value { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--accent); }
+
+  input[type=range] {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--divider);
+    outline: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  .iso-display {
+    background: var(--bg);
+    border: 1px solid var(--divider);
+    border-radius: 3px;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .iso-locked { font-family: var(--mono); font-size: 10px; color: var(--text-2); }
+  .iso-value { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--text); }
+
+  .explanation-card { background: var(--surface); border: 1px solid var(--divider); border-radius: 4px; padding: 16px 20px; margin-top: 0; }
+  .explanation-text { font-size: 13px; line-height: 1.65; color: var(--text-2); }
+  .explanation-text strong { color: var(--text); font-weight: 500; }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--divider); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <h1>Phone Light Meter</h1>
+  <span class="header-sub">CAM 101 / ART 180 — Week 2</span>
+</header>
+
+<div class="page">
+
+  <!-- LEFT: Phone -->
+  <div class="phone-wrap">
+    <div class="section-label">Light Meter App</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <!-- Meter scale -->
+        <div class="meter-scale-wrap">
+          <div class="meter-scale">
+            <div class="meter-gradient"></div>
+            <div class="center-mark"></div>
+            <div class="meter-ticks" id="ticks"></div>
+            <div class="needle-container">
+              <div class="needle" id="needle"></div>
+            </div>
+          </div>
+          <div class="meter-labels">
+            <span>-2</span><span>-1</span><span>0</span><span>+1</span><span>+2</span>
+          </div>
+        </div>
+
+        <!-- EV readout -->
+        <div class="ev-display">
+          <div class="ev-label">EV</div>
+          <div class="ev-value" id="ev-display">--</div>
+        </div>
+
+        <div class="phone-divider"></div>
+
+        <div class="phone-row">
+          <span class="phone-row-label">Aperture</span>
+          <span class="phone-row-value" id="disp-aperture">f/8</span>
+        </div>
+        <div class="phone-row">
+          <span class="phone-row-label">Shutter</span>
+          <span class="phone-row-value" id="disp-shutter">1/125s</span>
+        </div>
+        <div class="phone-row">
+          <span class="phone-row-label">ISO</span>
+          <span class="phone-row-value">400</span>
+        </div>
+
+        <div class="phone-divider"></div>
+
+        <div class="meter-status" id="meter-status">Adjust settings</div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Controls -->
+  <div class="controls-wrap">
+
+    <!-- Scene -->
+    <div class="card">
+      <div class="section-label">Scene — Light Conditions</div>
+      <div class="scene-grid">
+        <button class="scene-btn" data-ev="15" onclick="setScene(this)">Bright Sun<br>EV 15</button>
+        <button class="scene-btn active" data-ev="13" onclick="setScene(this)">Hazy Sun<br>EV 13</button>
+        <button class="scene-btn" data-ev="12" onclick="setScene(this)">Overcast<br>EV 12</button>
+        <button class="scene-btn" data-ev="10" onclick="setScene(this)">Open Shade<br>EV 10</button>
+        <button class="scene-btn" data-ev="7" onclick="setScene(this)">Indoors<br>EV 7</button>
+        <button class="scene-btn" data-ev="5" onclick="setScene(this)">Dim Indoors<br>EV 5</button>
+      </div>
+    </div>
+
+    <!-- Aperture -->
+    <div class="card">
+      <div class="section-label">Aperture</div>
+      <div class="control-row">
+        <div class="control-label">
+          <span class="control-name">f-stop</span>
+          <span class="control-value" id="label-aperture">f/8</span>
+        </div>
+        <input type="range" id="slider-aperture" min="0" max="7" value="4" oninput="update()">
+        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--text-2);margin-top:4px;">
+          <span>f/1.4</span><span>f/2</span><span>f/2.8</span><span>f/4</span><span>f/5.6</span><span>f/8</span><span>f/11</span><span>f/16</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shutter Speed -->
+    <div class="card">
+      <div class="section-label">Shutter Speed</div>
+      <div class="control-row">
+        <div class="control-label">
+          <span class="control-name">Speed</span>
+          <span class="control-value" id="label-shutter">1/125s</span>
+        </div>
+        <input type="range" id="slider-shutter" min="0" max="10" value="5" oninput="update()">
+        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--text-2);margin-top:4px;">
+          <span>1s</span><span>1/2</span><span>1/4</span><span>1/8</span><span>1/15</span><span>1/30</span><span>1/60</span><span>1/125</span><span>1/250</span><span>1/500</span><span>1/1000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ISO -->
+    <div class="card">
+      <div class="section-label">ISO — Film Speed</div>
+      <div class="iso-display">
+        <span class="iso-locked">Tri-X 400 — locked</span>
+        <span class="iso-value">ISO 400</span>
+      </div>
+    </div>
+
+    <!-- Explanation -->
+    <div class="explanation-card">
+      <div class="section-label" style="margin-bottom:8px;">How to Read the Meter</div>
+      <p class="explanation-text" id="explanation">Select a scene and adjust aperture and shutter speed until the needle centers. <strong>Center = correct exposure.</strong> Left = underexposed, right = overexposed. The goal is the same whether you use a phone meter or an in-camera needle.</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Aperture stops: EV contribution relative to f/1 = 2*log2(f-stop)
+  const apertures = [1.4, 2, 2.8, 4, 5.6, 8, 11, 16];
+  const apertureLabels = ['f/1.4','f/2','f/2.8','f/4','f/5.6','f/8','f/11','f/16'];
+  // EV values for aperture (relative, at ISO 100): log2(N^2)
+  const apertureEV = apertures.map(a => Math.log2(a * a));
+
+  // Shutter speeds in seconds
+  const shutters = [1, 1/2, 1/4, 1/8, 1/15, 1/30, 1/60, 1/125, 1/250, 1/500, 1/1000];
+  const shutterLabels = ['1s','1/2','1/4','1/8','1/15','1/30','1/60','1/125','1/250','1/500','1/1000'];
+  // EV contribution: -log2(t)
+  const shutterEV = shutters.map(t => -Math.log2(t));
+
+  // ISO correction: log2(ISO/100)
+  const isoCorrection = Math.log2(400/100); // = 2 stops
+
+  let sceneEV = 13; // default hazy sun
+
+  // Build ticks
+  const ticksEl = document.getElementById('ticks');
+  for (let i = 0; i <= 20; i++) {
+    const t = document.createElement('div');
+    t.className = 'meter-tick' + (i % 5 === 0 ? ' major' : '');
+    ticksEl.appendChild(t);
+  }
+
+  function setScene(btn) {
+    document.querySelectorAll('.scene-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    sceneEV = parseInt(btn.dataset.ev);
+    update();
+  }
+
+  function update() {
+    const aIdx = parseInt(document.getElementById('slider-aperture').value);
+    const sIdx = parseInt(document.getElementById('slider-shutter').value);
+
+    const aLabel = apertureLabels[aIdx];
+    const sLabel = shutterLabels[sIdx];
+
+    document.getElementById('label-aperture').textContent = aLabel;
+    document.getElementById('label-shutter').textContent = sLabel;
+    document.getElementById('disp-aperture').textContent = aLabel;
+    document.getElementById('disp-shutter').textContent = sLabel;
+
+    // Calculate EV from settings
+    // EV = log2(N^2 / t) at ISO 100
+    // At ISO 400: subtract isoCorrection
+    const settingEV = apertureEV[aIdx] + shutterEV[sIdx] - isoCorrection;
+
+    // Difference from scene
+    const diff = settingEV - sceneEV; // negative = underexposed, positive = overexposed
+
+    // EV display
+    document.getElementById('ev-display').textContent = sceneEV.toFixed(0);
+
+    // Needle position: center = 50%, ±2 EV = full range
+    const clampedDiff = Math.max(-2.5, Math.min(2.5, diff));
+    const needlePct = 50 + (clampedDiff / 2.5) * 50;
+    document.getElementById('needle').style.left = needlePct + '%';
+
+    // Status and color
+    const absDiff = Math.abs(diff);
+    let statusText, statusClass, dispClass;
+
+    if (absDiff < 0.4) {
+      statusText = 'Correct Exposure';
+      statusClass = 'correct';
+      dispClass = 'correct';
+    } else if (absDiff < 1) {
+      statusText = diff < 0 ? 'Slightly Underexposed' : 'Slightly Overexposed';
+      statusClass = 'warn';
+      dispClass = 'warn';
+    } else {
+      statusText = diff < 0 ? 'Underexposed' : 'Overexposed';
+      statusClass = 'danger';
+      dispClass = 'danger';
+    }
+
+    document.getElementById('meter-status').textContent = statusText;
+    document.getElementById('meter-status').className = 'meter-status ' + statusClass;
+    document.getElementById('disp-aperture').className = 'phone-row-value ' + dispClass;
+    document.getElementById('disp-shutter').className = 'phone-row-value ' + dispClass;
+
+    // Explanation
+    let exp = '';
+    if (absDiff < 0.4) {
+      exp = `<strong>Correct exposure.</strong> At ${aLabel}, ${sLabel}, ISO 400 in EV ${sceneEV} light — your negative will hold detail in both shadows and highlights.`;
+    } else if (diff < -1) {
+      exp = `<strong>Underexposed.</strong> Not enough light reaching the film. Open the aperture (lower f-number) or use a slower shutter speed to let in more light.`;
+    } else if (diff > 1) {
+      exp = `<strong>Overexposed.</strong> Too much light reaching the film. Use a smaller aperture (higher f-number) or a faster shutter speed to reduce light.`;
+    } else if (diff < 0) {
+      exp = `<strong>Slightly underexposed.</strong> Close — open up half a stop or slow the shutter slightly.`;
+    } else {
+      exp = `<strong>Slightly overexposed.</strong> Close — stop down half a stop or increase shutter speed slightly.`;
+    }
+    document.getElementById('explanation').innerHTML = exp;
+  }
+
+  // Init
+  update();
+</script>
+</body>
+</html>
